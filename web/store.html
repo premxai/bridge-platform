@@ -3,255 +3,549 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ShopCo</title>
+<title>ShopCo — Everyday essentials</title>
 <style>
-  :root { --ink:#111827; --muted:#6b7280; --line:#e5e7eb; --brand:#1d4ed8; --brand2:#1e3a8a; --ok:#15803d; --okbg:#dcfce7; --bad:#b91c1c; --badbg:#fee2e2; --warn:#92400e; --warnbg:#fef3c7; --bg:#f3f4f6; }
+  :root { --ink:#0a0a0a; --ink2:#404040; --muted:#737373; --line:#e5e5e5; --soft:#f5f5f4; --bg:#ffffff; --ok:#15803d; --okbg:#f0fdf4; --bad:#b91c1c; --badbg:#fef2f2; --info:#1d4ed8; --infobg:#eff6ff; --warnbg:#fffbeb; --warn:#92400e; }
   * { box-sizing:border-box; }
-  body { margin:0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background:var(--bg); color:var(--ink); }
+  html, body { margin:0; background:var(--bg); color:var(--ink); font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Inter, Roboto, "Helvetica Neue", Arial, sans-serif; -webkit-font-smoothing:antialiased; }
   a { color:inherit; text-decoration:none; }
-  header { position:sticky; top:0; z-index:5; background:var(--brand2); color:#fff; }
-  .bar { max-width:1100px; margin:0 auto; display:flex; align-items:center; gap:12px; padding:10px 16px; }
-  .logo { font-weight:900; font-size:22px; letter-spacing:-.5px; white-space:nowrap; }
-  .logo span { color:#fbbf24; }
-  .search { flex:1; display:flex; }
-  .search input { flex:1; min-width:0; border:0; border-radius:8px; padding:10px 12px; font-size:15px; }
-  .hlink { white-space:nowrap; font-size:14px; padding:6px 8px; border-radius:8px; }
-  .hlink:hover { background:rgba(255,255,255,.12); }
-  .count { background:#fbbf24; color:#111; border-radius:999px; padding:1px 7px; font-weight:800; font-size:12px; margin-left:4px; }
-  nav.cats { background:var(--brand); }
-  nav.cats .bar { padding:6px 16px; overflow-x:auto; gap:6px; }
-  .chip { color:#e0e7ff; font-size:14px; padding:6px 10px; border-radius:999px; white-space:nowrap; cursor:pointer; }
-  .chip.on { background:#fff; color:var(--brand2); font-weight:700; }
-  main { max-width:1100px; margin:0 auto; padding:16px; }
-  .hero { background:linear-gradient(120deg,#1e3a8a,#2563eb); color:#fff; border-radius:16px; padding:22px; margin-bottom:16px; }
-  .hero b { display:block; font-size:24px; } .hero span { opacity:.85; }
-  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(170px,1fr)); gap:14px; }
-  .card { background:#fff; border:1px solid var(--line); border-radius:14px; overflow:hidden; display:flex; flex-direction:column; }
-  .img { aspect-ratio:1.2; display:flex; align-items:center; justify-content:center; font-size:64px; }
-  .body { padding:12px; display:flex; flex-direction:column; gap:4px; flex:1; }
-  .name { font-weight:650; font-size:15px; }
-  .stars { color:#f59e0b; font-size:13px; } .stars small { color:var(--muted); }
-  .price { font-weight:800; font-size:18px; margin-top:auto; }
-  .btn { display:inline-block; text-align:center; border:0; border-radius:10px; padding:11px 16px; font-size:15px; font-weight:700; cursor:pointer; background:#fbbf24; color:#111; }
-  .btn.primary { background:var(--brand); color:#fff; }
-  .btn.ghost { background:#fff; border:1px solid var(--line); }
+  button { font:inherit; color:inherit; cursor:pointer; }
+  img { display:block; max-width:100%; }
+  .wrap { max-width:1280px; margin:0 auto; padding:0 24px; }
+  @media (max-width:640px) { .wrap { padding:0 16px; } }
+
+  .announce { background:var(--ink); color:#fff; text-align:center; font-size:13px; padding:9px 16px; letter-spacing:.01em; }
+  header.site { position:sticky; top:0; z-index:20; background:rgba(255,255,255,.96); backdrop-filter:saturate(180%) blur(8px); border-bottom:1px solid var(--line); }
+  .hbar { display:grid; grid-template-columns:1fr auto 1fr; align-items:center; height:64px; }
+  .nav { display:flex; gap:24px; font-size:14px; } .nav a { color:var(--ink2); } .nav a:hover, .nav a.on { color:var(--ink); }
+  .logo { font-weight:800; letter-spacing:.28em; font-size:18px; }
+  .icons { display:flex; justify-content:flex-end; gap:6px; }
+  .icon { width:40px; height:40px; border-radius:999px; border:0; background:transparent; display:inline-flex; align-items:center; justify-content:center; position:relative; }
+  .icon:hover { background:var(--soft); }
+  .icon svg { width:20px; height:20px; }
+  .badge-count { position:absolute; top:4px; right:2px; background:var(--ink); color:#fff; font-size:10px; font-weight:700; min-width:17px; height:17px; border-radius:999px; display:flex; align-items:center; justify-content:center; padding:0 4px; }
+  @media (max-width:820px) { .nav { display:none; } .hbar { grid-template-columns:auto 1fr auto; } .logo { justify-self:start; } }
+  .mnav { display:none; gap:18px; overflow-x:auto; padding:10px 16px; border-top:1px solid var(--line); font-size:14px; white-space:nowrap; }
+  @media (max-width:820px) { .mnav { display:flex; } }
+
+  .hero { position:relative; height:min(78vh, 640px); overflow:hidden; }
+  .hero img { width:100%; height:100%; object-fit:cover; filter:brightness(.72); }
+  .hero .copy { position:absolute; inset:auto 0 0 0; padding:56px 0; color:#fff; }
+  .hero h1 { font-size:clamp(36px, 6vw, 68px); line-height:1.02; margin:0 0 14px; letter-spacing:-.02em; font-weight:700; }
+  .hero p { font-size:17px; max-width:460px; margin:0 0 24px; opacity:.92; }
+  .btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; height:48px; padding:0 26px; border-radius:999px; border:1px solid var(--ink); background:var(--ink); color:#fff; font-weight:600; font-size:15px; }
+  .btn:hover { opacity:.88; }
+  .btn.light { background:#fff; color:var(--ink); border-color:#fff; }
+  .btn.ghost { background:#fff; color:var(--ink); border-color:var(--line); }
   .btn.block { width:100%; }
-  .btn:disabled { opacity:.6; cursor:default; }
-  .panel { background:#fff; border:1px solid var(--line); border-radius:14px; padding:16px; margin-bottom:14px; }
-  .two { display:grid; grid-template-columns:1.4fr 1fr; gap:16px; } @media (max-width:720px) { .two { grid-template-columns:1fr; } }
-  .row { display:flex; justify-content:space-between; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--line); }
-  .row:last-child { border-bottom:0; }
-  .qty button { width:30px; height:30px; border-radius:8px; border:1px solid var(--line); background:#fff; font-size:16px; }
-  label { display:block; font-size:13px; color:var(--muted); margin:10px 0 4px; }
-  input.f { width:100%; padding:11px 12px; border:1px solid var(--line); border-radius:10px; font-size:15px; background:#fafafa; }
-  .demo { font-size:12px; color:var(--warn); background:var(--warnbg); border-radius:8px; padding:6px 10px; margin-top:10px; }
-  .status { border-radius:14px; padding:18px; margin-bottom:14px; }
-  .status.ok { background:var(--okbg); color:var(--ok); } .status.bad { background:var(--badbg); color:var(--bad); } .status.wait { background:#e0e7ff; color:var(--brand2); }
-  .status b { display:block; font-size:22px; margin-bottom:4px; }
-  .live { border-left:3px solid var(--brand); padding-left:12px; }
-  .live div { padding:6px 0; font-size:14px; } .live .t { color:var(--muted); font-size:12px; }
-  .pill { font-size:12px; font-weight:800; border-radius:999px; padding:3px 9px; }
-  .pill.paid { background:var(--okbg); color:var(--ok); } .pill.failed { background:var(--badbg); color:var(--bad); } .pill.rec { background:#dbeafe; color:var(--brand); }
-  .spinner { width:42px; height:42px; border:4px solid #c7d2fe; border-top-color:var(--brand); border-radius:50%; animation:spin 1s linear infinite; margin:10px auto; }
+  .btn:disabled { opacity:.45; cursor:default; }
+  section.block { padding:64px 0; }
+  .sec-head { display:flex; align-items:end; justify-content:space-between; margin-bottom:24px; }
+  .sec-head h2 { font-size:28px; margin:0; letter-spacing:-.01em; }
+  .sec-head a { font-size:14px; text-decoration:underline; text-underline-offset:4px; }
+
+  .grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:28px 20px; }
+  @media (max-width:1000px) { .grid { grid-template-columns:repeat(3, 1fr); } }
+  @media (max-width:700px) { .grid { grid-template-columns:repeat(2, 1fr); gap:22px 12px; } }
+  .card .ph { position:relative; aspect-ratio:1; background:var(--soft); border-radius:14px; overflow:hidden; }
+  .card .ph > a { display:block; width:100%; height:100%; }
+  .card .ph img { width:100%; height:100%; object-fit:cover; transition:transform .5s ease; }
+  .card:hover .ph img { transform:scale(1.04); }
+  .tag { position:absolute; top:12px; left:12px; background:#fff; color:var(--ink); font-size:11px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; border-radius:999px; padding:5px 10px; }
+  .quick { position:absolute; left:12px; right:12px; bottom:12px; opacity:0; transform:translateY(6px); transition:all .2s; }
+  .card:hover .quick { opacity:1; transform:none; }
+  @media (hover:none) { .quick { display:none; } }
+  .card .meta { padding:12px 2px 0; }
+  .card .name { font-size:15px; font-weight:500; }
+  .card .row2 { display:flex; justify-content:space-between; color:var(--muted); font-size:14px; margin-top:4px; }
+  .card .price { color:var(--ink); }
+
+  .cats { display:grid; grid-template-columns:repeat(3, 1fr); gap:16px; }
+  @media (max-width:700px) { .cats { grid-template-columns:1fr; } }
+  .cat { display:block; position:relative; aspect-ratio:4/5; border-radius:16px; overflow:hidden; }
+  .cat img { width:100%; height:100%; object-fit:cover; filter:brightness(.78); transition:transform .5s; }
+  .cat:hover img { transform:scale(1.04); }
+  .cat span { position:absolute; left:20px; bottom:20px; color:#fff; font-size:22px; font-weight:600; }
+  @media (max-width:700px) { .cat { aspect-ratio:16/9; } }
+
+  .values { display:grid; grid-template-columns:repeat(3, 1fr); border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
+  .values div { padding:28px 20px; text-align:center; font-size:14px; color:var(--ink2); } .values b { display:block; color:var(--ink); font-size:15px; margin-bottom:4px; }
+  @media (max-width:700px) { .values { grid-template-columns:1fr; } }
+
+  footer.site { background:var(--soft); margin-top:64px; padding:48px 0 28px; font-size:14px; color:var(--ink2); }
+  .fcols { display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:24px; }
+  @media (max-width:700px) { .fcols { grid-template-columns:1fr 1fr; } }
+  .fcols h4 { margin:0 0 12px; color:var(--ink); font-size:14px; } .fcols a { display:block; padding:4px 0; }
+  .news { display:flex; gap:8px; margin-top:12px; } .news input { flex:1; height:44px; border:1px solid var(--line); border-radius:999px; padding:0 16px; font:inherit; background:#fff; }
+  .legal { display:flex; justify-content:space-between; margin-top:36px; padding-top:20px; border-top:1px solid var(--line); font-size:12px; color:var(--muted); flex-wrap:wrap; gap:8px; }
+
+  .crumbs { font-size:13px; color:var(--muted); padding:20px 0; } .crumbs a:hover { color:var(--ink); }
+  .pdp { display:grid; grid-template-columns:1.15fr 1fr; gap:48px; padding-bottom:48px; }
+  @media (max-width:860px) { .pdp { grid-template-columns:1fr; gap:24px; } }
+  .pdp .ph { background:var(--soft); border-radius:18px; overflow:hidden; aspect-ratio:1; } .pdp .ph img { width:100%; height:100%; object-fit:cover; }
+  .pdp h1 { font-size:32px; margin:0 0 8px; letter-spacing:-.01em; }
+  .stars { color:var(--ink); font-size:14px; letter-spacing:1px; } .stars small { color:var(--muted); letter-spacing:0; margin-left:6px; }
+  .pprice { font-size:22px; margin:14px 0 18px; }
+  .lbl { font-size:13px; font-weight:600; margin:18px 0 10px; display:flex; justify-content:space-between; } .lbl span { font-weight:400; color:var(--muted); }
+  .chips { display:flex; flex-wrap:wrap; gap:8px; }
+  .chip { min-width:52px; height:44px; padding:0 16px; border:1px solid var(--line); border-radius:999px; background:#fff; font-size:14px; }
+  .chip.on { border-color:var(--ink); background:var(--ink); color:#fff; }
+  .qty { display:inline-flex; align-items:center; border:1px solid var(--line); border-radius:999px; height:48px; }
+  .qty button { width:44px; height:100%; border:0; background:transparent; font-size:18px; } .qty span { min-width:28px; text-align:center; }
+  .buyrow { display:flex; gap:10px; margin-top:22px; } .buyrow .btn { flex:1; }
+  .perks { margin-top:18px; font-size:13px; color:var(--ink2); display:grid; gap:8px; }
+  details.acc { border-top:1px solid var(--line); padding:16px 0; } details.acc:last-of-type { border-bottom:1px solid var(--line); }
+  details.acc summary { cursor:pointer; font-weight:600; font-size:15px; list-style:none; display:flex; justify-content:space-between; } details.acc summary::after { content:"+"; } details.acc[open] summary::after { content:"−"; }
+  details.acc ul { margin:12px 0 0; padding-left:18px; color:var(--ink2); font-size:14px; line-height:1.8; }
+  .err { color:var(--bad); font-size:13px; margin-top:8px; min-height:18px; }
+
+  .scrim { position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:40; opacity:0; pointer-events:none; transition:opacity .2s; }
+  .scrim.on { opacity:1; pointer-events:auto; }
+  .drawer { position:fixed; top:0; right:0; bottom:0; width:min(440px, 100%); background:#fff; z-index:50; transform:translateX(100%); transition:transform .25s ease; display:flex; flex-direction:column; }
+  .drawer.on { transform:none; }
+  .dhead { display:flex; justify-content:space-between; align-items:center; padding:18px 20px; border-bottom:1px solid var(--line); font-weight:600; }
+  .dbody { flex:1; overflow:auto; padding:8px 20px; }
+  .dfoot { border-top:1px solid var(--line); padding:18px 20px; }
+  .line { display:grid; grid-template-columns:76px 1fr auto; gap:14px; padding:16px 0; border-bottom:1px solid var(--line); align-items:start; }
+  .line img { width:76px; height:76px; object-fit:cover; border-radius:10px; background:var(--soft); }
+  .line .n { font-size:14px; font-weight:500; } .line .v { font-size:13px; color:var(--muted); margin-top:3px; }
+  .line .qty { height:34px; margin-top:10px; } .line .qty button { width:32px; font-size:15px; }
+  .link { font-size:13px; color:var(--muted); text-decoration:underline; text-underline-offset:3px; background:none; border:0; padding:0; }
+  .tot { display:flex; justify-content:space-between; font-size:15px; margin-bottom:6px; }
+  .small { font-size:13px; color:var(--muted); }
+  .empty { text-align:center; padding:60px 0; color:var(--muted); }
+
+  /* checkout */
+  .cohead { border-bottom:1px solid var(--line); } .cohead .hbar { grid-template-columns:1fr auto; }
+  .co { display:grid; grid-template-columns:1.2fr 1fr; min-height:calc(100vh - 65px); }
+  @media (max-width:900px) { .co { grid-template-columns:1fr; } .co .side { order:-1; } }
+  .co .main { padding:36px 48px 64px max(24px, calc((100vw - 1280px)/2 + 24px)); }
+  .co .side { background:var(--soft); border-left:1px solid var(--line); padding:36px max(24px, calc((100vw - 1280px)/2 + 24px)) 36px 40px; }
+  @media (max-width:900px) { .co .main, .co .side { padding:24px 16px; } .co .side { border-left:0; border-bottom:1px solid var(--line); } }
+  .co h2 { font-size:19px; margin:30px 0 14px; display:flex; justify-content:space-between; align-items:center; } .co h2:first-child { margin-top:0; }
+  .fld { position:relative; margin-bottom:12px; }
+  .fld input, .fld select { width:100%; height:52px; border:1px solid #d4d4d4; border-radius:10px; padding:20px 14px 6px; font:inherit; font-size:15px; background:#fff; outline:none; appearance:none; }
+  .fld select { padding-top:18px; }
+  .fld label { position:absolute; left:15px; top:7px; font-size:11px; color:var(--muted); pointer-events:none; }
+  .fld input:focus, .fld select:focus { border-color:var(--ink); box-shadow:0 0 0 1px var(--ink); }
+  .fld.bad input, .fld.bad select { border-color:var(--bad); box-shadow:0 0 0 1px var(--bad); }
+  .row { display:grid; grid-template-columns:1fr 1fr; gap:12px; } .row3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
+  @media (max-width:560px) { .row3 { grid-template-columns:1fr 1fr; } .row3 .fld:first-child { grid-column:1 / -1; } }
+  .check { display:flex; gap:10px; align-items:center; font-size:14px; margin:6px 0 4px; }
+  .opts { border:1px solid #d4d4d4; border-radius:12px; overflow:hidden; }
+  .opt { display:flex; align-items:center; gap:12px; padding:16px; border-bottom:1px solid #d4d4d4; cursor:pointer; font-size:14px; }
+  .opt:last-child { border-bottom:0; } .opt.on { background:#fafaf9; box-shadow:inset 0 0 0 1px var(--ink); }
+  .opt .grow { flex:1; } .opt small { display:block; color:var(--muted); }
+  .paybox { border:1px solid #d4d4d4; border-radius:12px; overflow:hidden; }
+  .paytop { display:flex; justify-content:space-between; align-items:center; padding:14px 16px; background:#fafaf9; border-bottom:1px solid #d4d4d4; font-size:14px; font-weight:600; }
+  .brands { display:flex; gap:6px; } .brand { font-size:10px; font-weight:800; border:1px solid var(--line); border-radius:4px; padding:3px 6px; background:#fff; letter-spacing:.04em; color:var(--ink2); } .brand.on { border-color:var(--ink); color:var(--ink); }
+  .paybody { padding:16px; }
+  .secure { display:flex; gap:8px; align-items:center; color:var(--muted); font-size:13px; margin-bottom:12px; }
+  .notice { background:var(--warnbg); color:var(--warn); border-radius:10px; padding:10px 12px; font-size:13px; margin:4px 0 12px; }
+  .powered { text-align:center; font-size:12px; color:var(--muted); margin-top:12px; }
+  .sumline { display:grid; grid-template-columns:64px 1fr auto; gap:14px; align-items:center; padding:8px 0; font-size:14px; }
+  .thumb { position:relative; } .thumb img { width:64px; height:64px; border-radius:10px; object-fit:cover; border:1px solid var(--line); background:#fff; }
+  .thumb b { position:absolute; top:-8px; right:-8px; background:#737373; color:#fff; font-size:11px; min-width:20px; height:20px; border-radius:999px; display:flex; align-items:center; justify-content:center; }
+  .disc { display:flex; gap:10px; margin:18px 0; } .disc .fld { flex:1; margin:0; } .disc .btn { height:52px; border-radius:10px; }
+  .totals { border-top:1px solid var(--line); padding-top:14px; } .totals .tot { font-size:14px; } .grand { font-size:19px !important; font-weight:700; margin-top:10px; } .grand small { font-size:12px; color:var(--muted); font-weight:400; margin-right:6px; }
+
+  .overlay { position:fixed; inset:0; background:rgba(255,255,255,.92); z-index:60; display:none; align-items:center; justify-content:center; flex-direction:column; gap:14px; text-align:center; }
+  .overlay.on { display:flex; }
+  .spin { width:44px; height:44px; border:3px solid var(--line); border-top-color:var(--ink); border-radius:50%; animation:spin .9s linear infinite; }
   @keyframes spin { to { transform:rotate(360deg); } }
-  .pulse { display:inline-block; width:9px; height:9px; border-radius:50%; background:var(--brand); margin-right:6px; animation:p 1.2s infinite; }
+
+  /* order page */
+  .op { max-width:760px; margin:0 auto; padding:40px 24px 64px; }
+  .ostat { border-radius:16px; padding:24px; margin-bottom:20px; display:flex; gap:16px; align-items:flex-start; }
+  .ostat.ok { background:var(--okbg); } .ostat.bad { background:var(--badbg); } .ostat.info { background:var(--infobg); }
+  .ostat .ic { width:40px; height:40px; border-radius:999px; flex:none; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; }
+  .ostat.ok .ic { background:var(--ok); } .ostat.bad .ic { background:var(--bad); } .ostat.info .ic { background:var(--info); }
+  .ostat h1 { font-size:24px; margin:0 0 6px; letter-spacing:-.01em; } .ostat p { margin:0; color:var(--ink2); font-size:15px; line-height:1.5; }
+  .box { border:1px solid var(--line); border-radius:16px; padding:20px; margin-bottom:16px; }
+  .box h3 { margin:0 0 12px; font-size:16px; }
+  .kv { display:grid; grid-template-columns:1fr 1fr; gap:16px; font-size:14px; } .kv small { display:block; color:var(--muted); margin-bottom:4px; }
+  .timeline { position:relative; padding-left:22px; margin-top:6px; }
+  .timeline:before { content:""; position:absolute; left:6px; top:6px; bottom:6px; width:2px; background:var(--line); }
+  .tl { position:relative; padding:6px 0 10px; font-size:14px; } .tl:before { content:""; position:absolute; left:-21px; top:11px; width:10px; height:10px; border-radius:50%; background:var(--info); }
+  .tl small { display:block; color:var(--muted); font-size:12px; margin-top:2px; }
+  .pulse { display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--info); margin-right:8px; animation:p 1.2s infinite; vertical-align:middle; }
   @keyframes p { 50% { opacity:.25; } }
-  .muted { color:var(--muted); font-size:14px; }
-  footer { text-align:center; color:var(--muted); font-size:12px; padding:24px; }
+  .pill { font-size:12px; font-weight:600; border-radius:999px; padding:4px 10px; white-space:nowrap; }
+  .pill.paid { background:var(--okbg); color:var(--ok); } .pill.failed { background:var(--badbg); color:var(--bad); } .pill.rec { background:var(--infobg); color:var(--info); }
+  .olist a { display:flex; justify-content:space-between; align-items:center; padding:16px 0; border-bottom:1px solid var(--line); gap:12px; }
+  .toast { position:fixed; left:50%; bottom:24px; transform:translateX(-50%) translateY(20px); background:var(--ink); color:#fff; padding:12px 18px; border-radius:999px; font-size:14px; opacity:0; transition:all .25s; z-index:70; }
+  .toast.on { opacity:1; transform:translateX(-50%); }
 </style>
 </head>
 <body>
-<header>
-  <div class="bar">
-    <a class="logo" href="#/">Shop<span>Co</span></a>
-    <div class="search"><input id="q" placeholder="Search ShopCo" autocomplete="off"></div>
-    <a class="hlink" href="#/orders">Orders</a>
-    <a class="hlink" href="#/cart">Cart<span class="count" id="count">0</span></a>
-  </div>
-</header>
-<nav class="cats"><div class="bar" id="cats"></div></nav>
-<main id="app"></main>
-<footer>ShopCo is a demo store for Haunted Hacks. No real payments are taken.</footer>
+<div id="root"></div>
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-label="Shopping bag"></aside>
+<div class="overlay" id="overlay"><div class="spin"></div><b id="ovTitle">Processing payment…</b><div class="small" id="ovSub">Please don't close this page.</div></div>
+<div class="toast" id="toast"></div>
 
 <script>
-const $ = (s) => document.querySelector(s);
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 const money = (n) => "$" + Number(n).toFixed(2);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const store = { get(k, d) { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } }, set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} } };
+const api = (p, body) => fetch(p, body ? { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) } : {}).then((r) => r.json());
+
 let shopper = store.get("shopper", null);
 if (!shopper) { shopper = Math.random().toString(36).slice(2, 10); store.set("shopper", shopper); }
-let cart = store.get("cart", []);
+let bag = store.get("bag", []);
 let products = [];
-let category = "All";
 let timers = [];
-
-const saveCart = () => { store.set("cart", cart); $("#count").textContent = cart.reduce((s, i) => s + i.qty, 0); };
+const TAX = 0.08625;
 const find = (id) => products.find((p) => p.id === id);
-const stars = (r, n) => `<div class="stars">${"★".repeat(Math.round(r))}${"☆".repeat(5 - Math.round(r))} <small>${r} (${n})</small></div>`;
-const api = (p, body) => fetch(p, body ? { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) } : {}).then((r) => r.json());
-function clearTimers() { timers.forEach(clearInterval); timers = []; }
+const img = (p) => `/img/${p.image}`;
+const saveBag = () => { store.set("bag", bag); $$(".badge-count").forEach((b) => { const n = bag.reduce((s, i) => s + i.qty, 0); b.textContent = n; b.style.display = n ? "" : "none"; }); };
+const subtotal = () => Math.round(bag.reduce((s, i) => s + find(i.product_id).price * i.qty, 0) * 100) / 100;
+const variant = (i) => [i.color, i.size].filter(Boolean).join(" / ");
+function toast(t) { const el = $("#toast"); el.textContent = t; el.classList.add("on"); setTimeout(() => el.classList.remove("on"), 1800); }
+const ICON = {
+  search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>',
+  user: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>',
+  bag: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 7h12l1 14H5L6 7Z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>',
+  lock: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>',
+};
+const CATS = ["Apparel", "Accessories", "Bags", "Home", "Coffee", "Audio"];
 
-function addToCart(id, qty = 1) {
-  const line = cart.find((i) => i.product_id === id);
-  if (line) line.qty += qty; else cart.push({ product_id: id, qty });
-  saveCart();
+function shell(inner, active = "") {
+  return `
+  <div class="announce">Free standard shipping on orders over $75 · Free 30-day returns</div>
+  <header class="site"><div class="wrap hbar">
+    <nav class="nav"><a href="#/shop" class="${active === "all" ? "on" : ""}">Shop all</a>${CATS.slice(0, 4).map((c) => `<a href="#/shop/${c}" class="${active === c ? "on" : ""}">${c}</a>`).join("")}</nav>
+    <a class="logo" href="#/">SHOPCO</a>
+    <div class="icons">
+      <a class="icon" href="#/shop" aria-label="Search">${ICON.search}</a>
+      <a class="icon" href="#/account" aria-label="Account">${ICON.user}</a>
+      <button class="icon" id="bagBtn" aria-label="Bag">${ICON.bag}<span class="badge-count"></span></button>
+    </div>
+  </div>
+  <nav class="mnav"><a href="#/shop">Shop all</a>${CATS.map((c) => `<a href="#/shop/${c}">${c}</a>`).join("")}<a href="#/account">Orders</a></nav>
+  </header>
+  <main>${inner}</main>
+  <footer class="site"><div class="wrap">
+    <div class="fcols">
+      <div><div class="logo" style="font-size:16px">SHOPCO</div><p style="max-width:320px">Thoughtfully made everyday essentials. Designed in San Francisco.</p>
+        <div class="news"><input placeholder="Email address" aria-label="Email for newsletter"><button class="btn" style="height:44px" onclick="toast('Thanks for subscribing!')">Subscribe</button></div></div>
+      <div><h4>Shop</h4>${CATS.slice(0, 4).map((c) => `<a href="#/shop/${c}">${c}</a>`).join("")}</div>
+      <div><h4>Help</h4><a href="#/account">Order status</a><a>Shipping</a><a>Returns</a><a>Contact us</a></div>
+      <div><h4>Company</h4><a>About</a><a>Sustainability</a><a>Careers</a></div>
+    </div>
+    <div class="legal"><span>© 2026 ShopCo, Inc. Demo store built for Haunted Hacks.</span><span>Payments by PayFlow · Fraud screening by ShieldCo</span></div>
+  </div></footer>`;
 }
 
-function renderCats() {
-  const cats = ["All", ...new Set(products.map((p) => p.category))];
-  $("#cats").innerHTML = cats.map((c) => `<span class="chip ${c === category ? "on" : ""}" data-c="${c}">${c}</span>`).join("");
-  document.querySelectorAll(".chip").forEach((el) => el.onclick = () => { category = el.dataset.c; location.hash = "#/"; route(); });
+function card(p) {
+  return `<div class="card">
+    <div class="ph"><a href="#/p/${p.id}"><img src="${img(p)}" alt="${esc(p.name)}" loading="lazy"></a>${p.badge ? `<span class="tag">${p.badge}</span>` : ""}
+      <div class="quick"><button class="btn block" style="height:40px;font-size:14px" data-quick="${p.id}">${p.sizes ? "Choose options" : "Add to bag"}</button></div></div>
+    <div class="meta"><a href="#/p/${p.id}" class="name">${esc(p.name)}</a>
+      <div class="row2"><span class="price">${money(p.price)}</span><span>${p.colors && p.colors.length > 1 ? `${p.colors.length} colors` : ""}</span></div></div>
+  </div>`;
+}
+function bindCards(root) {
+  $$("[data-quick]", root).forEach((b) => b.onclick = () => {
+    const p = find(b.dataset.quick);
+    if (p.sizes) { location.hash = `#/p/${p.id}`; return; }
+    addToBag(p.id, 1, p.colors ? p.colors[0] : undefined); openBag();
+  });
 }
 
 function home() {
-  const q = $("#q").value.trim().toLowerCase();
-  const list = products.filter((p) => (category === "All" || p.category === category) && (!q || p.name.toLowerCase().includes(q)));
-  $("#app").innerHTML = `
-    <div class="hero"><b>Fall essentials, delivered tomorrow</b><span>Free shipping on orders over $50</span></div>
-    <div class="grid">${list.map((p) => `
-      <div class="card">
-        <a href="#/p/${p.id}" class="img" style="background:${p.tint}">${p.icon}</a>
-        <div class="body">
-          <a href="#/p/${p.id}" class="name">${p.name}</a>
-          ${stars(p.rating, p.reviews)}
-          <div class="price">${money(p.price)}</div>
-          <button class="btn" data-add="${p.id}">Add to cart</button>
-        </div>
-      </div>`).join("") || `<p class="muted">No products match.</p>`}</div>`;
-  document.querySelectorAll("[data-add]").forEach((b) => b.onclick = () => { addToCart(b.dataset.add); b.textContent = "Added ✓"; setTimeout(() => b.textContent = "Add to cart", 900); });
+  const featured = ["hoodie", "coffee", "backpack", "beanie", "tee", "wallet", "headphones", "mug"].map(find);
+  return shell(`
+    <section class="hero"><img src="/img/hero.jpg" alt="">
+      <div class="copy"><div class="wrap"><h1>The Fall Edit</h1><p>Heavyweight layers, everyday carry and the coffee to start it all. New pieces, made to last.</p>
+      <a class="btn light" href="#/shop">Shop the collection</a></div></div></section>
+    <div class="wrap">
+      <section class="block"><div class="sec-head"><h2>Featured products</h2><a href="#/shop">View all</a></div>
+        <div class="grid">${featured.map(card).join("")}</div></section>
+      <section class="block" style="padding-top:0"><div class="sec-head"><h2>Shop by category</h2></div>
+        <div class="cats">${[["Apparel", "hoodie"], ["Accessories", "wallet"], ["Coffee", "coffee"]].map(([c, i]) => `<a class="cat" href="#/shop/${c}"><img src="/img/${i}.jpg" alt=""><span>${c}</span></a>`).join("")}</div></section>
+    </div>
+    <div class="values"><div><b>Free shipping over $75</b>Standard delivery in 3–5 days</div><div><b>30-day returns</b>Not right? Send it back, free</div><div><b>Secure checkout</b>Encrypted payments with fraud screening</div></div>`, "home");
 }
 
-function product(id) {
+function shop(cat) {
+  const list = products.filter((p) => !cat || p.category === cat);
+  return shell(`<div class="wrap">
+    <div class="crumbs"><a href="#/">Home</a> / ${cat ? `<a href="#/shop">Shop</a> / ${esc(cat)}` : "Shop all"}</div>
+    <div class="sec-head"><h2>${esc(cat || "Shop all")}</h2><span class="small">${list.length} products</span></div>
+    <div class="chips" style="margin-bottom:28px"><a class="chip ${!cat ? "on" : ""}" href="#/shop" style="display:inline-flex;align-items:center">All</a>${CATS.map((c) => `<a class="chip ${cat === c ? "on" : ""}" href="#/shop/${c}" style="display:inline-flex;align-items:center">${c}</a>`).join("")}</div>
+    <div class="grid">${list.map(card).join("")}</div></div>`, cat || "all");
+}
+
+function pdp(id) {
   const p = find(id);
-  if (!p) return home();
-  $("#app").innerHTML = `
-    <div class="two">
-      <div class="panel img" style="background:${p.tint};font-size:120px;border-radius:14px">${p.icon}</div>
-      <div class="panel">
-        <div class="muted">${p.category}</div>
-        <h1 style="margin:4px 0">${p.name}</h1>
-        ${stars(p.rating, p.reviews)}
-        <p style="font-size:28px;font-weight:800;margin:10px 0">${money(p.price)}</p>
-        <p>${p.blurb}</p>
-        <p class="muted">In stock · Delivery tomorrow</p>
-        <button class="btn block" id="add">Add to cart</button>
-        <div style="height:8px"></div>
-        <button class="btn primary block" id="buy">Buy now</button>
+  if (!p) return shop();
+  const others = products.filter((x) => x.id !== p.id).slice(0, 4);
+  const stars = "★".repeat(Math.round(p.rating)) + "☆".repeat(5 - Math.round(p.rating));
+  return shell(`<div class="wrap">
+    <div class="crumbs"><a href="#/">Home</a> / <a href="#/shop/${p.category}">${p.category}</a> / ${esc(p.name)}</div>
+    <div class="pdp">
+      <div class="ph"><img src="${img(p)}" alt="${esc(p.name)}"></div>
+      <div>
+        <h1>${esc(p.name)}</h1>
+        <div class="stars">${stars}<small>${p.rating} · ${p.reviews} reviews</small></div>
+        <div class="pprice">${money(p.price)}</div>
+        <p style="color:var(--ink2);line-height:1.6;margin:0">${esc(p.blurb)}</p>
+        ${p.colors ? `<div class="lbl">Color <span id="colorName">${p.colors[0]}</span></div><div class="chips">${p.colors.map((c, i) => `<button class="chip ${i === 0 ? "on" : ""}" data-color="${esc(c)}">${esc(c)}</button>`).join("")}</div>` : ""}
+        ${p.sizes ? `<div class="lbl">Size <span>Size guide</span></div><div class="chips">${p.sizes.map((s) => `<button class="chip" data-size="${s}">${s}</button>`).join("")}</div>` : ""}
+        <div class="lbl">Quantity</div>
+        <div class="qty"><button id="qm" aria-label="Decrease">−</button><span id="qv">1</span><button id="qp" aria-label="Increase">+</button></div>
+        <div class="buyrow"><button class="btn" id="add">Add to bag · ${money(p.price)}</button></div>
+        <div class="err" id="perr"></div>
+        <div class="perks"><div>✓ In stock, ships in 1 business day</div><div>✓ Free standard shipping on orders over $75</div><div>✓ Free 30-day returns</div></div>
+        <div style="margin-top:22px">
+          <details class="acc" open><summary>Details</summary><ul>${(p.details || []).map((d) => `<li>${esc(d)}</li>`).join("")}</ul></details>
+          <details class="acc"><summary>Shipping & returns</summary><ul><li>Standard: 3–5 business days, free over $75</li><li>Express: 1–2 business days, $14.99</li><li>Free returns within 30 days</li></ul></details>
+        </div>
       </div>
-    </div>`;
-  $("#add").onclick = () => { addToCart(p.id); $("#add").textContent = "Added ✓"; };
-  $("#buy").onclick = () => { addToCart(p.id); location.hash = "#/checkout"; };
+    </div>
+    <section class="block" style="padding-top:16px"><div class="sec-head"><h2>You may also like</h2></div><div class="grid">${others.map(card).join("")}</div></section>
+  </div>`, p.category);
+}
+function bindPdp(id) {
+  const p = find(id);
+  let qty = 1, color = p.colors ? p.colors[0] : undefined, size;
+  const refresh = () => { $("#qv").textContent = qty; $("#add").textContent = `Add to bag · ${money(p.price * qty)}`; };
+  $("#qm").onclick = () => { qty = Math.max(1, qty - 1); refresh(); };
+  $("#qp").onclick = () => { qty = Math.min(10, qty + 1); refresh(); };
+  $$("[data-color]").forEach((b) => b.onclick = () => { color = b.dataset.color; $$("[data-color]").forEach((x) => x.classList.toggle("on", x === b)); $("#colorName").textContent = color; });
+  $$("[data-size]").forEach((b) => b.onclick = () => { size = b.dataset.size; $$("[data-size]").forEach((x) => x.classList.toggle("on", x === b)); $("#perr").textContent = ""; });
+  $("#add").onclick = () => {
+    if (p.sizes && !size) { $("#perr").textContent = "Please select a size."; return; }
+    addToBag(p.id, qty, color, size); openBag();
+  };
 }
 
-function cartPage() {
-  const total = cart.reduce((s, i) => s + find(i.product_id).price * i.qty, 0);
-  $("#app").innerHTML = `
-    <div class="two">
-      <div class="panel"><h2 style="margin-top:0">Your cart</h2>
-        ${cart.length ? cart.map((i) => { const p = find(i.product_id); return `
-          <div class="row"><div style="display:flex;gap:10px;align-items:center"><span style="font-size:32px">${p.icon}</span><div><div class="name">${p.name}</div><div class="muted">${money(p.price)}</div></div></div>
-          <div class="qty"><button data-dec="${p.id}">−</button> ${i.qty} <button data-inc="${p.id}">+</button></div></div>`; }).join("") : `<p class="muted">Your cart is empty. <a href="#/" style="color:var(--brand)">Keep shopping</a></p>`}
-      </div>
-      <div class="panel"><div class="row"><span>Subtotal</span><b>${money(total)}</b></div>
-        <button class="btn primary block" ${cart.length ? "" : "disabled"} onclick="location.hash='#/checkout'">Proceed to checkout</button></div>
-    </div>`;
-  document.querySelectorAll("[data-inc]").forEach((b) => b.onclick = () => { addToCart(b.dataset.inc, 1); cartPage(); });
-  document.querySelectorAll("[data-dec]").forEach((b) => b.onclick = () => { const l = cart.find((i) => i.product_id === b.dataset.dec); l.qty -= 1; cart = cart.filter((i) => i.qty > 0); saveCart(); cartPage(); });
+function addToBag(product_id, qty, color, size) {
+  const line = bag.find((i) => i.product_id === product_id && i.color === color && i.size === size);
+  if (line) line.qty = Math.min(10, line.qty + qty); else bag.push({ product_id, qty, color, size });
+  saveBag(); renderBag();
 }
+function renderBag() {
+  const sub = subtotal();
+  const left = Math.max(0, 75 - sub);
+  $("#drawer").innerHTML = `
+    <div class="dhead"><span>Your bag (${bag.reduce((s, i) => s + i.qty, 0)})</span><button class="icon" id="closeBag" aria-label="Close">✕</button></div>
+    <div class="dbody">${bag.length ? `
+      <div class="small" style="padding:12px 0">${left > 0 ? `You're ${money(left)} away from free shipping.` : "You've unlocked free shipping."}</div>
+      ${bag.map((i, n) => { const p = find(i.product_id); return `<div class="line"><img src="${img(p)}" alt="">
+        <div><div class="n">${esc(p.name)}</div><div class="v">${esc(variant(i))}</div>
+        <div class="qty"><button data-dec="${n}">−</button><span>${i.qty}</span><button data-inc="${n}">+</button></div></div>
+        <div style="text-align:right"><div style="font-size:14px">${money(p.price * i.qty)}</div><button class="link" data-rm="${n}" style="margin-top:10px">Remove</button></div></div>`; }).join("")}`
+      : `<div class="empty">Your bag is empty.<br><br><a class="btn ghost" href="#/shop" id="keep">Start shopping</a></div>`}</div>
+    ${bag.length ? `<div class="dfoot"><div class="tot"><span>Subtotal</span><b>${money(sub)}</b></div><div class="small" style="margin-bottom:14px">Shipping and taxes calculated at checkout.</div>
+      <a class="btn block" href="#/checkout" id="goCheckout">Checkout</a></div>` : ""}`;
+  $("#closeBag").onclick = closeBag;
+  $("#keep")?.addEventListener("click", closeBag);
+  $("#goCheckout")?.addEventListener("click", closeBag);
+  $$("[data-inc]").forEach((b) => b.onclick = () => { bag[b.dataset.inc].qty = Math.min(10, bag[b.dataset.inc].qty + 1); saveBag(); renderBag(); });
+  $$("[data-dec]").forEach((b) => b.onclick = () => { const l = bag[b.dataset.dec]; l.qty -= 1; if (l.qty < 1) bag.splice(b.dataset.dec, 1); saveBag(); renderBag(); });
+  $$("[data-rm]").forEach((b) => b.onclick = () => { bag.splice(b.dataset.rm, 1); saveBag(); renderBag(); });
+}
+function openBag() { renderBag(); $("#drawer").classList.add("on"); $("#scrim").classList.add("on"); }
+function closeBag() { $("#drawer").classList.remove("on"); $("#scrim").classList.remove("on"); }
+$("#scrim").onclick = closeBag;
+
+// ---------- checkout ----------
+const STATES = ["AL","AK","AZ","AR","CA","CO","CT","DE","DC","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"];
+const DEMO = { email: "alex.rivera@example.com", first_name: "Alex", last_name: "Rivera", address1: "500 Market Street", address2: "Apt 12", city: "San Francisco", state: "CA", zip: "94105", phone: "(415) 555-0134", cardname: "Alex Rivera" };
+let shipMethod = "standard";
+function shipPrice(sub) { return shipMethod === "express" ? 14.99 : sub >= 75 ? 0 : 5.99; }
+function brandOf(num) { const n = num.replace(/\D/g, ""); if (/^4/.test(n)) return "VISA"; if (/^(5[1-5]|2[2-7])/.test(n)) return "MC"; if (/^3[47]/.test(n)) return "AMEX"; if (/^6/.test(n)) return "DISC"; return ""; }
+function luhn(num) { const n = num.replace(/\D/g, ""); let s = 0; for (let i = 0; i < n.length; i++) { let d = +n[n.length - 1 - i]; if (i % 2) { d *= 2; if (d > 9) d -= 9; } s += d; } return n.length >= 13 && s % 10 === 0; }
+const fld = (id, label, attrs = "") => `<div class="fld" data-f="${id}"><input id="${id}" placeholder=" " ${attrs}><label for="${id}">${label}</label></div>`;
 
 function checkout() {
-  if (!cart.length) { location.hash = "#/cart"; return; }
-  const total = cart.reduce((s, i) => s + find(i.product_id).price * i.qty, 0);
-  $("#app").innerHTML = `
-    <div class="two">
-      <div>
-        <div class="panel"><h2 style="margin-top:0">Shipping</h2>
-          <label>Full name</label><input class="f" value="Alex Rivera" readonly>
-          <label>Address</label><input class="f" value="500 Market St, San Francisco, CA 94105" readonly>
-        </div>
-        <div class="panel"><h2 style="margin-top:0">Payment</h2>
-          <label>Card number</label><input class="f" value="4242 4242 4242 4242" readonly>
-          <div style="display:flex;gap:10px"><div style="flex:1"><label>Expiry</label><input class="f" value="12/29" readonly></div><div style="flex:1"><label>CVC</label><input class="f" value="123" readonly></div></div>
-          <div class="demo">Demo card: no real payment is taken. Processed by PayFlow · Fraud screening by ShieldCo</div>
+  if (!bag.length) { location.hash = "#/"; return ""; }
+  return `
+  <header class="cohead"><div class="wrap hbar"><a class="logo" href="#/">SHOPCO</a><a class="icon" href="#/" onclick="openBag();return false" aria-label="Bag">${ICON.bag}<span class="badge-count"></span></a></div></header>
+  <div class="co">
+    <div class="main">
+      <h2>Contact <button class="link" id="demoFill">Use demo details</button></h2>
+      ${fld("email", "Email", 'type="email" autocomplete="email"')}
+      <label class="check"><input type="checkbox" checked> Email me with news and offers</label>
+
+      <h2>Delivery</h2>
+      <div class="fld"><select id="country"><option>United States</option></select><label>Country/Region</label></div>
+      <div class="row">${fld("first_name", "First name", 'autocomplete="given-name"')}${fld("last_name", "Last name", 'autocomplete="family-name"')}</div>
+      ${fld("address1", "Address", 'autocomplete="address-line1"')}
+      ${fld("address2", "Apartment, suite, etc. (optional)", 'autocomplete="address-line2"')}
+      <div class="row3">${fld("city", "City", 'autocomplete="address-level2"')}
+        <div class="fld" data-f="state"><select id="state"><option value="">Select</option>${STATES.map((s) => `<option>${s}</option>`).join("")}</select><label>State</label></div>
+        ${fld("zip", "ZIP code", 'inputmode="numeric" autocomplete="postal-code" maxlength="5"')}</div>
+      ${fld("phone", "Phone (optional)", 'type="tel" autocomplete="tel"')}
+
+      <h2>Shipping method</h2>
+      <div class="opts" id="ship"></div>
+
+      <h2>Payment</h2>
+      <div class="secure">${ICON.lock} All transactions are secure and encrypted.</div>
+      <div class="paybox">
+        <div class="paytop"><span>Credit card</span><span class="brands"><span class="brand" data-b="VISA">VISA</span><span class="brand" data-b="MC">MC</span><span class="brand" data-b="AMEX">AMEX</span><span class="brand" data-b="DISC">DISC</span></span></div>
+        <div class="paybody">
+          <div class="notice">Demo store: use test card 4242 4242 4242 4242. Card numbers are never sent to a server.</div>
+          ${fld("cardnum", "Card number", 'inputmode="numeric" autocomplete="off" maxlength="23" value="4242 4242 4242 4242"')}
+          <div class="row">${fld("exp", "Expiration date (MM / YY)", 'inputmode="numeric" autocomplete="off" maxlength="7" value="12 / 29"')}${fld("cvc", "Security code", 'inputmode="numeric" autocomplete="off" maxlength="4" value="123"')}</div>
+          ${fld("cardname", "Name on card", 'autocomplete="off"')}
+          <label class="check"><input type="checkbox" checked> Billing address same as shipping</label>
         </div>
       </div>
-      <div class="panel"><h2 style="margin-top:0">Order summary</h2>
-        ${cart.map((i) => { const p = find(i.product_id); return `<div class="row"><span>${p.icon} ${p.name} × ${i.qty}</span><span>${money(p.price * i.qty)}</span></div>`; }).join("")}
-        <div class="row"><span>Shipping</span><span>${total >= 50 ? "Free" : money(4.99)}</span></div>
-        <div class="row"><b>Total</b><b>${money(total)}</b></div>
-        <button class="btn primary block" id="place">Place order</button>
-      </div>
-    </div>`;
-  $("#place").onclick = placeOrder;
+      <div class="err" id="coerr"></div>
+      <button class="btn block" id="pay" style="height:56px;margin-top:8px;font-size:16px"></button>
+      <div class="powered">${ICON.lock} Payments processed by PayFlow · Fraud screening by ShieldCo</div>
+    </div>
+    <aside class="side">
+      <div id="sumLines"></div>
+      <div class="disc"><div class="fld"><input id="code" placeholder=" "><label for="code">Discount code</label></div><button class="btn ghost" id="apply">Apply</button></div>
+      <div class="err" id="codeErr" style="margin-top:-8px"></div>
+      <div class="totals" id="totals"></div>
+    </aside>
+  </div>`;
+}
+function bindCheckout() {
+  const sub = subtotal();
+  $("#sumLines").innerHTML = bag.map((i) => { const p = find(i.product_id); return `<div class="sumline"><div class="thumb"><img src="${img(p)}" alt=""><b>${i.qty}</b></div><div><div>${esc(p.name)}</div><div class="small">${esc(variant(i))}</div></div><div>${money(p.price * i.qty)}</div></div>`; }).join("");
+  const renderTotals = () => {
+    const sp = shipPrice(sub), tax = Math.round(sub * TAX * 100) / 100, total = Math.round((sub + sp + tax) * 100) / 100;
+    $("#totals").innerHTML = `<div class="tot"><span>Subtotal</span><span>${money(sub)}</span></div><div class="tot"><span>Shipping</span><span>${sp ? money(sp) : "Free"}</span></div><div class="tot"><span>Estimated taxes</span><span>${money(tax)}</span></div><div class="tot grand"><span>Total</span><span><small>USD</small>${money(total)}</span></div>`;
+    $("#pay").textContent = `Pay now · ${money(total)}`;
+  };
+  const renderShip = () => {
+    $("#ship").innerHTML = [["standard", "Standard shipping", "3–5 business days", sub >= 75 ? "Free" : money(5.99)], ["express", "Express shipping", "1–2 business days", money(14.99)]]
+      .map(([k, t, e, p]) => `<label class="opt ${shipMethod === k ? "on" : ""}"><input type="radio" name="ship" value="${k}" ${shipMethod === k ? "checked" : ""}><span class="grow">${t}<small>${e}</small></span><b>${p}</b></label>`).join("");
+    $$("#ship input").forEach((r) => r.onchange = () => { shipMethod = r.value; renderShip(); renderTotals(); });
+  };
+  renderShip(); renderTotals();
+  const cn = $("#cardnum");
+  const showBrand = () => { const b = brandOf(cn.value); $$(".brand").forEach((x) => x.classList.toggle("on", x.dataset.b === b)); };
+  cn.oninput = () => { cn.value = cn.value.replace(/\D/g, "").slice(0, 19).replace(/(.{4})(?=.)/g, "$1 "); showBrand(); };
+  showBrand();
+  $("#exp").oninput = (e) => { const d = e.target.value.replace(/\D/g, "").slice(0, 4); e.target.value = d.length > 2 ? `${d.slice(0, 2)} / ${d.slice(2)}` : d; };
+  $("#zip").oninput = (e) => { e.target.value = e.target.value.replace(/\D/g, "").slice(0, 5); };
+  $("#demoFill").onclick = () => { for (const [k, v] of Object.entries(DEMO)) { const el = $("#" + k); if (el) el.value = v; } $$(".fld.bad").forEach((f) => f.classList.remove("bad")); };
+  $("#apply").onclick = () => { $("#codeErr").textContent = $("#code").value.trim() ? "Enter a valid discount code." : ""; };
+  $$(".fld input, .fld select").forEach((el) => el.addEventListener("input", () => el.closest(".fld").classList.remove("bad")));
+  $("#pay").onclick = pay;
+}
+function validate() {
+  const v = (id) => ($("#" + id)?.value ?? "").trim();
+  const bad = [];
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v("email"))) bad.push(["email", "Enter a valid email"]);
+  for (const k of ["first_name", "last_name", "address1", "city"]) if (!v(k)) bad.push([k, "Required"]);
+  if (!v("state")) bad.push(["state", "Select a state"]);
+  if (!/^\d{5}$/.test(v("zip"))) bad.push(["zip", "Enter a 5-digit ZIP code"]);
+  if (!luhn(v("cardnum"))) bad.push(["cardnum", "Enter a valid card number"]);
+  const m = v("exp").match(/^(\d{2}) \/ (\d{2})$/);
+  if (!m || +m[1] < 1 || +m[1] > 12 || new Date(2000 + +m[2], +m[1]) < new Date()) bad.push(["exp", "Enter a valid expiration date"]);
+  if (!/^\d{3,4}$/.test(v("cvc"))) bad.push(["cvc", "Enter the security code"]);
+  if (!v("cardname")) bad.push(["cardname", "Enter the name on your card"]);
+  $$(".fld").forEach((f) => f.classList.toggle("bad", bad.some(([k]) => k === f.dataset.f)));
+  $("#coerr").textContent = bad.length ? `Please check: ${[...new Set(bad.map(([, m]) => m))].join(", ")}.` : "";
+  if (bad.length) $(`[data-f="${bad[0][0]}"]`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+  return !bad.length;
+}
+async function pay() {
+  if (!validate()) return;
+  const v = (id) => $("#" + id).value.trim();
+  const digits = v("cardnum").replace(/\D/g, "");
+  $("#ovTitle").textContent = "Processing payment…"; $("#ovSub").textContent = "Contacting PayFlow"; $("#overlay").classList.add("on");
+  setTimeout(() => { $("#ovSub").textContent = "Verifying with ShieldCo fraud screening"; }, 900);
+  const body = {
+    shopper, email: v("email"), shipping_method: shipMethod,
+    items: bag.map(({ product_id, qty, size, color }) => ({ product_id, qty, size, color })),
+    ship_to: { first_name: v("first_name"), last_name: v("last_name"), address1: v("address1"), address2: v("address2"), city: v("city"), state: v("state"), zip: v("zip"), country: "US", phone: v("phone") },
+    card: { brand: brandOf(digits) || "CARD", last4: digits.slice(-4) }, // never the full number
+  };
+  const [r] = await Promise.all([api("/api/checkout", body), new Promise((res) => setTimeout(res, 1800))]);
+  $("#overlay").classList.remove("on");
+  if (r.order_id) { bag = []; saveBag(); store.set("lastEmail", body.email); location.hash = `#/order/${r.order_id}`; }
+  else $("#coerr").textContent = "Something went wrong. Please try again.";
 }
 
-async function placeOrder() {
-  $("#app").innerHTML = `<div class="panel" style="text-align:center"><div class="spinner"></div><b>Processing payment…</b><p class="muted">Contacting PayFlow</p></div>`;
-  const r = await api("/api/checkout", { shopper, items: cart.map(({ product_id, qty }) => ({ product_id, qty })) });
-  cart = []; saveCart();
-  location.hash = `#/order/${r.order_id}`;
-}
-
-const WHO = { shopco: "ShopCo (store)", payflow: "PayFlow (payments partner)", shieldco: "ShieldCo (fraud checks partner)", monitor: "Monitoring" };
+// ---------- order status ----------
+const WHO = { shopco: "ShopCo", payflow: "PayFlow (payments)", shieldco: "ShieldCo (fraud screening)", monitor: "ShopCo monitoring" };
 const SAY = {
-  INCIDENT_OPENED: "noticed failed checkouts and opened an incident",
-  STATUS: "is working on it", EVIDENCE_REQUEST: "asked a partner for evidence", EVIDENCE: "shared evidence",
-  INNOCENT: "checked its systems: not the cause", SUSPECT: "found something suspicious", ROOT_CAUSE: "found the root cause",
-  FIX_PROPOSAL: "proposed a fix", FIX_AGREED: "agreed on the fix", FIX_DEPLOYED: "deployed the fix", RETRY_PLAN: "is retrying failed orders", RESOLVED: "resolved the incident",
+  INCIDENT_OPENED: "detected failed payments and opened an incident", STATUS: "is investigating", EVIDENCE_REQUEST: "asked a partner to check their systems",
+  EVIDENCE: "shared what its systems recorded", INNOCENT: "checked its systems: not the cause", SUSPECT: "found something suspicious", ROOT_CAUSE: "found the root cause",
+  FIX_PROPOSAL: "proposed a fix", FIX_AGREED: "agreed on the fix", FIX_DEPLOYED: "deployed the fix", RETRY_PLAN: "is completing affected orders", RESOLVED: "resolved the issue",
 };
-
+function orderShell(inner) {
+  return shell(`<div class="op">${inner}</div>`);
+}
 async function orderPage(id) {
   async function draw() {
-    const o = await api(`/api/order?id=${id}`);
-    if (o.error) { $("#app").innerHTML = `<div class="panel">Order not found.</div>`; return; }
-    const items = (o.items || []).map((i) => `${i.name} × ${i.qty}`).join(", ");
-    let html = "";
+    const o = await api(`/api/order?id=${encodeURIComponent(id)}`);
+    if (o.error) { $("main").innerHTML = `<div class="op"><div class="box">We couldn't find that order.</div></div>`; return "x"; }
+    const name = o.ship_to?.first_name ? `, ${esc(o.ship_to.first_name)}` : "";
+    let head;
     if (o.status === "paid" && o.recovered) {
-      html = `<div class="status ok"><b>Good news, your order went through ✓</b>Your payment was declined earlier because of a problem between our partners. It's fixed, and order ${o.order_id} has been charged ${money(o.amount)}. No need to do anything.</div>`;
+      head = `<div class="ostat ok"><div class="ic">✓</div><div><h1>Good news${name}, your order went through</h1><p>Your payment was declined earlier because of a problem between our payment partners. It's fixed now, and order ${esc(o.order_id)} has been charged ${money(o.amount)}. You don't need to do anything.</p></div></div>`;
     } else if (o.status === "paid") {
-      html = `<div class="status ok"><b>Thank you! Order confirmed ✓</b>Order ${o.order_id} · ${money(o.amount)} · arriving tomorrow</div>`;
+      head = `<div class="ostat ok"><div class="ic">✓</div><div><h1>Thank you${name}!</h1><p>Order ${esc(o.order_id)} is confirmed. We'll email you when it ships.</p></div></div>`;
     } else {
       const s = await api("/api/incident-status");
       const steps = s.steps || [];
-      html = `<div class="status bad"><b>Payment declined</b>We couldn't complete order ${o.order_id} (${money(o.amount)}). Your card was not charged.</div>
-        <div class="panel"><h3 style="margin-top:0"><span class="pulse"></span>We're on it</h3>
-          <p class="muted">ShopCo and its payment partners are investigating together right now. If the problem is on our side, we'll complete your order automatically. You can keep this page open.</p>
-          <div class="live">${steps.length ? steps.map((e) => `<div><b>${WHO[e.from] || e.from}</b> ${SAY[e.type] || "sent an update"}<div class="t">${new Date(e.at).toLocaleTimeString()}</div></div>`).join("") : `<div class="muted">Waiting for the first update…</div>`}</div>
-        </div>`;
+      head = `<div class="ostat bad"><div class="ic">!</div><div><h1>Payment declined</h1><p>We couldn't complete order ${esc(o.order_id)} (${money(o.amount)}). Your card was not charged.</p></div></div>
+        <div class="box"><h3><span class="pulse"></span>We're on it</h3>
+          <p class="small" style="margin:0 0 10px">ShopCo and its payment partners are investigating this right now. If the problem is on our side, we'll complete your order automatically. Keep this page open, or check <a href="#/account" style="text-decoration:underline">your orders</a> later.</p>
+          <div class="timeline">${steps.length ? steps.map((e) => `<div class="tl"><b>${WHO[e.from] || esc(e.from)}</b> ${SAY[e.type] || "sent an update"}<small>${new Date(e.at).toLocaleTimeString()}</small></div>`).join("") : `<div class="tl">Waiting for the first update…<small>Our team has been notified</small></div>`}</div></div>`;
     }
-    $("#app").innerHTML = html + `<div class="panel"><div class="row"><span>Items</span><span>${items}</span></div><div class="row"><span>Order</span><span>${o.order_id}</span></div></div>
-      <a class="btn ghost" href="#/">Continue shopping</a> <a class="btn ghost" href="#/orders">Your orders</a>`;
+    const items = (o.items || []).map((i) => `<div class="sumline"><div class="thumb"><img src="/img/${i.image || "hero.jpg"}" alt=""><b>${i.qty}</b></div><div><div>${esc(i.name)}</div><div class="small">${esc(variant(i))}</div></div><div>${money(i.price * i.qty)}</div></div>`).join("");
+    $("main").innerHTML = `<div class="op">${head}
+      <div class="box"><h3>Order ${esc(o.order_id)}</h3>${items}
+        <div class="totals" style="margin-top:10px"><div class="tot"><span>Subtotal</span><span>${money(o.subtotal ?? o.amount)}</span></div>
+        <div class="tot"><span>Shipping (${esc(o.shipping?.label || "Standard")})</span><span>${o.shipping?.price ? money(o.shipping.price) : "Free"}</span></div>
+        <div class="tot"><span>Taxes</span><span>${money(o.tax ?? 0)}</span></div><div class="tot grand"><span>Total</span><span>${money(o.amount)}</span></div></div></div>
+      <div class="box kv"><div><small>Shipping to</small>${o.ship_to ? `${esc(o.ship_to.city)}, ${esc(o.ship_to.state)}` : "—"}<br><span class="small">${esc(o.shipping?.eta || "")}</span></div>
+        <div><small>Payment</small>${o.card ? `${esc(o.card.brand)} •••• ${esc(o.card.last4)}` : "Card"}<br><span class="small">${o.status === "paid" ? "Charged" : "Not charged"}</span></div></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap"><a class="btn" href="#/shop">Continue shopping</a><a class="btn ghost" href="#/account">View all orders</a></div></div>`;
     return o.status;
   }
-  const status = await draw();
-  if (status !== "paid") timers.push(setInterval(draw, 2500));
+  const st = await draw();
+  if (st === "failed") timers.push(setInterval(async () => { if ((await draw()) === "paid") timers.forEach(clearInterval); }, 2500));
 }
-
-async function ordersPage() {
+async function accountPage() {
   async function draw() {
     const list = await api(`/api/my-orders?shopper=${shopper}`);
-    $("#app").innerHTML = `<div class="panel"><h2 style="margin-top:0">Your orders</h2>${list.length ? list.map((o) => `
-      <a class="row" href="#/order/${o.order_id}"><div><div class="name">${o.order_id}</div><div class="muted">${(o.items || []).map((i) => i.name).join(", ")} · ${new Date(o.created_at).toLocaleTimeString()}</div></div>
-      <div style="text-align:right"><b>${money(o.amount)}</b><br>${o.recovered ? `<span class="pill rec">Recovered ✓</span>` : `<span class="pill ${o.status}">${o.status === "paid" ? "Paid" : o.status === "failed" ? "Declined" : o.status}</span>`}</div></a>`).join("") : `<p class="muted">No orders yet.</p>`}</div>`;
+    $("main").innerHTML = `<div class="op"><h1 style="font-size:28px;margin:0 0 6px">Your orders</h1><p class="small" style="margin:0 0 20px">Orders placed from this device.</p>
+      <div class="box olist" style="padding:4px 20px">${list.length ? list.map((o) => `<a href="#/order/${o.order_id}"><div><b>${esc(o.order_id)}</b><div class="small">${(o.items || []).map((i) => esc(i.name)).join(", ")} · ${new Date(o.created_at).toLocaleString()}</div></div>
+        <div style="text-align:right"><div>${money(o.amount)}</div>${o.recovered ? `<span class="pill rec">Completed after delay</span>` : `<span class="pill ${o.status}">${o.status === "paid" ? "Confirmed" : o.status === "failed" ? "Payment declined" : esc(o.status)}</span>`}</div></a>`).join("") : `<div class="empty">No orders yet.</div>`}</div></div>`;
   }
   await draw();
   timers.push(setInterval(draw, 3000));
 }
 
+// ---------- router ----------
 function route() {
-  clearTimers();
-  const [, page, id] = (location.hash || "#/").split("/");
-  if (page === "p") return product(id);
-  if (page === "cart") return cartPage();
-  if (page === "checkout") return checkout();
-  if (page === "order") return orderPage(id);
-  if (page === "orders") return ordersPage();
-  renderCats();
-  home();
+  timers.forEach(clearInterval); timers = [];
+  closeBag();
+  const [, page, a] = (location.hash || "#/").split("/").map(decodeURIComponent);
+  let html;
+  if (page === "checkout") html = checkout();
+  else if (page === "p") html = pdp(a);
+  else if (page === "shop") html = shop(a);
+  else if (page === "order") html = orderShell(`<div class="box">Loading your order…</div>`);
+  else if (page === "account") html = orderShell(`<div class="box">Loading…</div>`);
+  else html = home();
+  $("#root").innerHTML = html;
+  window.scrollTo(0, 0);
+  saveBag();
+  $("#bagBtn")?.addEventListener("click", openBag);
+  bindCards(document);
+  if (page === "p") bindPdp(a);
+  if (page === "checkout" && bag.length) bindCheckout();
+  if (page === "order") orderPage(a);
+  if (page === "account") accountPage();
 }
-
-$("#q").oninput = () => { if (location.hash.startsWith("#/p") || location.hash === "" || location.hash === "#/") home(); else location.hash = "#/"; };
-window.onhashchange = route;
-api("/api/products").then((p) => { products = p; saveCart(); renderCats(); route(); });
+window.addEventListener("hashchange", route);
+api("/api/products").then((p) => { products = p; bag = bag.filter((i) => find(i.product_id)); route(); });
 </script>
 </body>
 </html>

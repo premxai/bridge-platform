@@ -105,7 +105,7 @@ async function monitorTick(): Promise<void> {
 }
 
 // ---------- traffic generator: simulated shoppers ----------
-const PRODUCT_IDS = ["stickers", "socks", "mug", "beans", "beans", "tshirt", "hoodie", "headphones"];
+const PRODUCT_IDS = ["hoodie", "tee", "beanie", "tote", "wallet", "mug", "coffee", "coffee", "backpack", "headphones", "notebook"];
 async function trafficTick(): Promise<void> {
   if (trafficMode === "off") return;
   const product_id = PRODUCT_IDS[Math.floor(Math.random() * PRODUCT_IDS.length)];
@@ -207,13 +207,25 @@ createServer(async (req, res) => {
     if (route === "GET /control") return isLocal(req) ? page(res, "control.html") : json(res, 403, { error: "local only" });
 
     if (route === "GET /api/products") return json(res, 200, await (await fetch(`${SHOPCO}/products`)).json());
+    if (url.pathname.startsWith("/img/") && req.method === "GET") {
+      const file = join(ROOT, "web", "img", url.pathname.slice(5).replace(/[^a-z0-9._-]/gi, ""));
+      if (!existsSync(file)) return json(res, 404, { error: "not_found" });
+      res.writeHead(200, { "content-type": "image/jpeg", "cache-control": "public, max-age=3600" });
+      return res.end(readFileSync(file));
+    }
     if (route === "POST /api/checkout") {
       const b = await body(req);
       const shopper = String(b.shopper || randomUUID().slice(0, 8)).replace(/[^a-z0-9-]/gi, "");
+      // Card numbers never reach the server: the page sends only brand and last 4 digits.
+      const card = b.card ? { brand: String(b.card.brand ?? "card"), last4: String(b.card.last4 ?? "").replace(/\D/g, "").slice(-4) } : undefined;
       const r = await fetch(`${SHOPCO}/checkout`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ items: b.items, product_id: b.product_id, customer_email: `shopper-${shopper}@example.com` }),
+        body: JSON.stringify({
+          items: b.items, product_id: b.product_id, shopper,
+          email: b.email || `shopper-${shopper}@example.com`,
+          ship_to: b.ship_to, shipping_method: b.shipping_method, card,
+        }),
       });
       return json(res, r.status, await r.json());
     }
@@ -223,7 +235,7 @@ createServer(async (req, res) => {
     }
     if (route === "GET /api/my-orders") {
       const shopper = String(url.searchParams.get("shopper") ?? "").replace(/[^a-z0-9-]/gi, "");
-      const r = await fetch(`${SHOPCO}/orders/by-customer?email=${encodeURIComponent(`shopper-${shopper}@example.com`)}`);
+      const r = await fetch(`${SHOPCO}/orders/by-shopper?shopper=${encodeURIComponent(shopper)}`);
       return json(res, r.status, await r.json());
     }
     // Customer-friendly view of what the companies' agents are doing right now.
