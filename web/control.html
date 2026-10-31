@@ -24,6 +24,14 @@
   <p class="sub">Laptop only. The agents can't see this page.</p>
 
   <section>
+    <h2>Stage demo</h2>
+    <div class="row">
+      <div><div>Break PayFlow + 20s burst of shoppers</div><div class="state" style="color:#9ca3af;font-weight:400">About 20 failed orders, then shoppers stop</div></div>
+      <button class="break" onclick="demoStart()">Start demo incident</button>
+    </div>
+  </section>
+
+  <section>
     <h2>Break a company</h2>
     <div class="row">
       <div><div>PayFlow (payments)</div><div class="state" id="payflow-state">…</div></div>
@@ -55,6 +63,7 @@ const post = (path, body) => fetch(path, { method: "POST", headers: { "content-t
 const log = (t) => document.getElementById("log").textContent = t;
 async function fault(company, broken) { await post("/control/fault", { company, broken }); log(`${company} ${broken ? "broken" : "healed"} at ${new Date().toLocaleTimeString()}`); }
 async function traffic(mode) { await post("/control/traffic", { mode }); log(`traffic: ${mode}`); }
+async function demoStart() { await post("/control/demo-start", { company: "payflow", seconds: 20 }); log(`demo incident started at ${new Date().toLocaleTimeString()}: PayFlow broken, shoppers for 20s`); }
 async function reset() { await post("/control/reset"); log("demo reset: faults healed, counters cleared"); }
 function render(s) {
   const el = document.getElementById("payflow-state");

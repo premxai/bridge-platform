@@ -150,6 +150,8 @@ function connectObserver(): void {
     }
     const msg = raw.message ?? raw.data?.message ?? raw.data ?? raw;
     const text: string = msg?.text ?? "";
+    // Only real messages; skip read receipts, presence and other bookkeeping events.
+    if (!text || /read|presence|status/.test(String(raw.type ?? raw.event ?? ""))) return;
     let envelope: any = null;
     const jsonLine = text.split("\n").find((l) => l.startsWith("{"));
     if (jsonLine) try { envelope = JSON.parse(jsonLine); } catch {}
@@ -271,6 +273,15 @@ createServer(async (req, res) => {
       if (route === "POST /control/traffic") {
         setTraffic(b.mode);
         return json(res, 200, { trafficMode });
+      }
+      // Demo incident: break a company, then a short burst of shoppers so there are a
+      // handful of failed orders (not hundreds) for the agents to recover.
+      if (route === "POST /control/demo-start") {
+        const company = b.company ?? "payflow";
+        await setFault(company, true);
+        setTraffic("burst");
+        setTimeout(() => { if (trafficMode === "burst") setTraffic("off"); }, Number(b.seconds ?? 20) * 1000);
+        return json(res, 200, { faults: faultState, trafficMode, stopsAfterSeconds: Number(b.seconds ?? 20) });
       }
       if (route === "POST /control/incident") {
         if (incident) incident.status = b.status;
