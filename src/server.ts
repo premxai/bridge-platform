@@ -9,8 +9,13 @@ import { readEnv } from "../scripts/lib/env.ts";
 const ROOT = join(import.meta.dirname, "..");
 const env = readEnv("platform");
 const PORT = Number(process.env.PORT ?? 3000);
-const SHOPCO = "http://localhost:4001";
-const COMPANY_ADMIN: Record<string, string> = { payflow: "http://localhost:4002", shieldco: "http://localhost:4003", shopco: "http://localhost:4001" };
+// Each company runs on its own Freestyle VM when its URL is set; otherwise on this laptop.
+const SHOPCO = env.SHOPCO_URL || "http://localhost:4001";
+const COMPANY_ADMIN: Record<string, string> = {
+  shopco: SHOPCO,
+  payflow: env.PAYFLOW_URL || "http://localhost:4002",
+  shieldco: env.SHIELDCO_URL || "http://localhost:4003",
+};
 const RELAY_BASE = "https://cast.agentrelay.com/v1";
 
 // Faults the judge can switch on. Each one is a config change inside one company.
