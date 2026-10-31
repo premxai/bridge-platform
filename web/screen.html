@@ -3,118 +3,245 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Bridge</title>
+<title>Bridge — Incident Room</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
-  :root { --bg:#0e1015; --panel:#171a21; --line:#2a2f3a; --ink:#f3f4f6; --muted:#9ca3af;
-          --shopco:#3b82f6; --payflow:#22c55e; --shieldco:#f59e0b; --bad:#ef4444; --ok:#22c55e; }
+  :root {
+    --paper:#efebe3; --card:#faf8f4; --sunk:#e6e1d7; --ink:#15130f; --ink2:#4b453d; --muted:#8c8378;
+    --shopco:#2f54eb; --payflow:#0f8a5f; --shieldco:#d97a1e; --monitor:#c2371f;
+    --red:#c2371f; --redsoft:#f6dfd8; --green:#13774f; --greensoft:#dcebe1; --blue:#2f54eb; --bluesoft:#e0e5f7;
+    --serif:"Instrument Serif", Georgia, serif; --sans:Geist, ui-sans-serif, system-ui, sans-serif; --mono:"Geist Mono", ui-monospace, Menlo, monospace;
+  }
   * { box-sizing:border-box; }
-  body { margin:0; background:var(--bg); color:var(--ink); font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
-  .chain { display:flex; align-items:center; justify-content:center; gap:0; padding:20px 24px 8px; }
-  .co { width:230px; text-align:center; padding:14px; border-radius:14px; background:var(--panel); border:3px solid var(--line); transition:border-color .3s, box-shadow .3s; }
-  .co .n { font-size:26px; font-weight:800; } .co .r { font-size:15px; color:var(--muted); } .co .s { margin-top:6px; font-size:16px; font-weight:700; min-height:20px; }
-  .co.root { border-color:var(--bad); box-shadow:0 0 24px rgba(239,68,68,.5); }
-  .arrow { width:110px; height:6px; background:var(--line); position:relative; border-radius:3px; transition:background .2s; }
-  .arrow.lit { box-shadow:0 0 18px currentColor; }
-  .banner { margin:12px 24px; padding:16px 20px; border-radius:12px; background:var(--panel); border:1px solid var(--line); font-size:28px; font-weight:800; text-align:center; }
-  .banner.alert { background:#3b1113; border-color:var(--bad); }
-  .banner.good { background:#0f2a18; border-color:var(--ok); }
-  .grid { display:grid; grid-template-columns: 1.1fr 1fr 1.3fr; gap:16px; padding:8px 24px 24px; }
-  .card { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:16px; }
-  .card h3 { margin:0 0 10px; font-size:14px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
-  .stat { display:flex; justify-content:space-between; align-items:baseline; padding:6px 0; font-size:20px; }
-  .stat b { font-size:34px; } .bad { color:var(--bad); } .ok { color:var(--ok); }
-  .feed div { font-size:16px; padding:6px 0; border-bottom:1px solid var(--line); }
-  .feed .who { font-weight:800; }
-  .orders div { font-size:15px; padding:4px 0; display:flex; justify-content:space-between; }
-  #qr { background:#fff; padding:8px; display:inline-block; border-radius:8px; margin-top:8px; }
-  .url { font-size:13px; color:var(--muted); word-break:break-all; margin-top:6px; }
+  html, body { margin:0; background:var(--paper); color:var(--ink); font-family:var(--sans); -webkit-font-smoothing:antialiased; }
+  .app { max-width:1720px; margin:0 auto; padding:18px 32px 18px; display:flex; flex-direction:column; gap:14px; min-height:100vh; }
+  .label { font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); font-weight:500; }
+
+  header { display:flex; align-items:center; justify-content:space-between; }
+  .brand { display:flex; align-items:baseline; gap:16px; }
+  .logo { font-weight:700; letter-spacing:.34em; font-size:19px; }
+  .brand em { font-family:var(--serif); font-size:26px; color:var(--ink2); }
+  .live { display:flex; align-items:center; gap:10px; font-family:var(--mono); font-size:14px; color:var(--ink2); }
+  .live i { width:9px; height:9px; border-radius:50%; background:var(--red); animation:pulse 1.6s infinite; }
+  @keyframes pulse { 0% { box-shadow:0 0 0 0 rgba(194,55,31,.45); } 70% { box-shadow:0 0 0 10px rgba(194,55,31,0); } 100% { box-shadow:0 0 0 0 rgba(194,55,31,0); } }
+
+  /* headline */
+  .banner { background:var(--ink); color:#f6f2ea; border-radius:28px; padding:18px 32px 22px; transition:background .5s; }
+  .banner .label { color:rgba(246,242,234,.55); }
+  .banner .t { font-family:var(--serif); font-size:50px; line-height:1.02; letter-spacing:-.01em; margin-top:6px; }
+  .banner.alert { background:var(--red); }
+  .banner.good { background:var(--green); }
+
+  /* the three companies */
+  .chain { display:grid; grid-template-columns:1fr 90px 1fr 90px 1fr; align-items:center; }
+  .co { background:var(--card); border-radius:24px; padding:20px 22px; display:grid; grid-template-columns:auto 1fr; column-gap:16px; row-gap:14px; transition:background .4s; }
+  .av { width:56px; height:56px; border-radius:18px; background:var(--c); color:#fff; font-family:var(--serif); font-size:34px; display:flex; align-items:center; justify-content:center; }
+  .co .n { font-size:26px; font-weight:600; letter-spacing:-.02em; line-height:1; margin-top:4px; }
+  .co .r { font-family:var(--serif); font-style:italic; font-size:20px; color:var(--muted); margin-top:4px; }
+  .co .foot { grid-column:1 / -1; display:flex; justify-content:space-between; align-items:center; background:var(--sunk); border-radius:14px; padding:10px 14px; transition:background .4s; }
+  .co .agent { font-family:var(--mono); font-size:13px; color:var(--ink2); }
+  .state { font-family:var(--mono); font-size:13px; font-weight:600; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); display:flex; align-items:center; gap:8px; }
+  .state i { width:8px; height:8px; border-radius:50%; background:currentColor; opacity:.6; }
+  .state.work { color:var(--blue); } .state.work i { animation:blink 1s infinite; opacity:1; }
+  .state.good { color:var(--green); } .state.bad { color:var(--red); }
+  @keyframes blink { 50% { opacity:.2; } }
+  .co.root { background:var(--redsoft); } .co.root .foot { background:#efcabf; }
+  .co.cleared { background:var(--greensoft); } .co.cleared .foot { background:#c9e0d0; }
+  .conn { height:14px; position:relative; }
+  .conn::before { content:""; position:absolute; left:8px; right:8px; top:6px; border-top:2px dotted #b9b0a3; }
+  .conn b { position:absolute; top:1px; left:0; width:12px; height:12px; border-radius:50%; opacity:0; }
+  .conn.go b { animation:travel 1.1s ease-in-out; opacity:1; }
+  .conn.back.go b { animation:travelBack 1.1s ease-in-out; }
+  @keyframes travel { from { left:0; } to { left:calc(100% - 12px); } }
+  @keyframes travelBack { from { left:calc(100% - 12px); } to { left:0; } }
+
+  /* panels */
+  .grid { display:grid; grid-template-columns:.95fr 1.1fr 1.55fr; gap:16px; flex:1; min-height:0; }
+  .card { background:var(--card); border-radius:24px; padding:20px 24px; display:flex; flex-direction:column; min-height:0; overflow:hidden; }
+  .card .top { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:14px; }
+  .card .top .label { white-space:nowrap; } .card h2 { white-space:nowrap; margin:0; font-family:var(--serif); font-weight:400; font-size:32px; letter-spacing:-.01em; }
+  .stat { padding:8px 0; }
+  .stat + .stat { border-top:1px solid var(--sunk); }
+  .stat b { display:block; font-family:var(--serif); font-weight:400; font-size:48px; line-height:1; margin-top:4px; letter-spacing:-.01em; }
+  .stat.bad b { color:var(--red); } .stat.ok b { color:var(--green); }
+  .try { margin-top:auto; display:flex; gap:16px; align-items:center; background:var(--sunk); border-radius:18px; padding:12px; }
+  #qr { background:#fff; padding:6px; border-radius:12px; }
+  #qr img, #qr canvas { display:block; }
+  .try b { display:block; font-size:17px; font-weight:600; } .try span { font-size:14px; color:var(--ink2); }
+  .url { font-family:var(--mono); font-size:11px; color:var(--muted); word-break:break-all; margin-top:6px; }
+
+  /* incident room */
+  .track { display:grid; grid-template-columns:repeat(5, 1fr); gap:6px; margin:4px 0 8px; }
+  .track div { height:8px; border-radius:99px; background:var(--sunk); }
+  .track div.done { background:var(--ink); } .track div.now { background:var(--blue); animation:blink 1.2s infinite; }
+  .tracklabels { display:grid; grid-template-columns:repeat(5, 1fr); gap:6px; font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); }
+  .tracklabels .on { color:var(--ink); font-weight:600; }
+  .rid { display:flex; justify-content:space-between; align-items:baseline; margin:18px 0 12px; }
+  .rid b { font-family:var(--mono); font-size:17px; font-weight:600; } .rid small { font-family:var(--mono); font-size:12px; color:var(--muted); }
+  .kpis { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
+  .kpi { background:var(--sunk); border-radius:16px; padding:12px 14px; }
+  .kpi b { display:block; font-family:var(--serif); font-weight:400; font-size:40px; line-height:1; }
+  .kpi small { font-size:13px; color:var(--ink2); }
+  .sus { display:grid; gap:8px; }
+  .sus div { display:flex; justify-content:space-between; align-items:center; font-size:17px; font-weight:600; padding:10px 14px; border-radius:14px; background:var(--sunk); }
+  .pill { font-family:var(--mono); font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:.05em; border-radius:99px; padding:5px 11px; }
+  .pill.inv { background:var(--bluesoft); color:var(--blue); } .pill.clr { background:var(--greensoft); color:var(--green); } .pill.rc { background:var(--red); color:#fff; }
+  .empty { font-family:var(--serif); font-style:italic; color:var(--muted); font-size:24px; padding:26px 0; text-align:center; }
+  .orders { margin-top:auto; padding-top:14px; display:grid; gap:2px; font-family:var(--mono); font-size:13px; }
+  .orders div { display:flex; justify-content:space-between; padding:5px 0; color:var(--ink2); }
+  .tx-ok { color:var(--green); } .tx-bad { color:var(--red); } .tx-rec { color:var(--blue); }
+
+  /* agent conversation */
+  .feed { display:flex; flex-direction:column; gap:4px; overflow:hidden; }
+  .msg { display:grid; grid-template-columns:42px 1fr; gap:14px; padding:12px 4px; animation:in .4s ease; }
+  .msg + .msg { border-top:1px solid var(--sunk); }
+  @keyframes in { from { opacity:0; transform:translateY(-8px); } }
+  .msg .a { width:42px; height:42px; border-radius:14px; color:#fff; font-family:var(--serif); font-size:24px; display:flex; align-items:center; justify-content:center; }
+  .msg .h { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .msg .h b { font-size:17px; font-weight:600; } .msg .h span { font-family:var(--mono); font-size:13px; color:var(--muted); }
+  .type { font-family:var(--mono); font-size:11px; font-weight:600; letter-spacing:.06em; border-radius:99px; padding:4px 10px; background:var(--sunk); color:var(--ink2); }
+  .type.ROOT_CAUSE, .type.INCIDENT_OPENED, .type.POLICY_BLOCKED { background:var(--red); color:#fff; }
+  .type.FIX_DEPLOYED, .type.RESOLVED, .type.INNOCENT, .type.FIX_AGREED { background:var(--greensoft); color:var(--green); }
+  .type.FIX_PROPOSAL, .type.EVIDENCE_REQUEST { background:var(--bluesoft); color:var(--blue); }
+  .msg p { margin:6px 0 0; font-size:17px; color:var(--ink2); line-height:1.4; }
+  footer { display:flex; justify-content:space-between; align-items:center; font-size:14px; color:var(--muted); }
+  footer .by { white-space:nowrap; font-family:var(--mono); font-size:12px; letter-spacing:.08em; text-transform:uppercase; }
+  footer .by b { color:var(--ink); font-weight:600; margin-left:14px; }
 </style>
 </head>
 <body>
-<div class="chain">
-  <div class="co" id="co-shopco"><div class="n" style="color:var(--shopco)">ShopCo</div><div class="r">store · Codex · Freestyle VM</div><div class="s" id="s-shopco">idle</div></div>
-  <div class="arrow" id="a-shopco-payflow"></div>
-  <div class="co" id="co-payflow"><div class="n" style="color:var(--payflow)">PayFlow</div><div class="r">payments · Claude Code · Freestyle VM</div><div class="s" id="s-payflow">idle</div></div>
-  <div class="arrow" id="a-payflow-shieldco"></div>
-  <div class="co" id="co-shieldco"><div class="n" style="color:var(--shieldco)">ShieldCo</div><div class="r">fraud checks · OpenCode · Freestyle VM</div><div class="s" id="s-shieldco">idle</div></div>
-</div>
+<div class="app">
+  <header>
+    <div class="brand"><div class="logo">BRIDGE</div><em>the incident room</em></div>
+    <div class="live"><i></i><span id="clock">LIVE</span></div>
+  </header>
 
-<div class="banner" id="banner">All systems normal</div>
+  <section class="banner" id="banner"><div class="label">Right now</div><div class="t" id="btext">All systems normal</div></section>
 
-<div class="grid">
-  <div class="card">
-    <h3>Impact</h3>
-    <div class="stat"><span>Failed checkouts</span><b class="bad" id="failed">0</b></div>
-    <div class="stat"><span>Lost sales</span><b class="bad" id="lost">$0</b></div>
-    <div class="stat"><span>Recovered</span><b class="ok" id="recovered">$0</b></div>
-    <h3 style="margin-top:14px">Try it · scan to shop</h3>
-    <div id="qr"></div>
-    <div class="url" id="url"></div>
-  </div>
-  <div class="card">
-    <h3>Incident Room · Terse Durable Actor</h3>
-    <div id="room" class="orders"><div style="color:var(--muted)">Waiting for an incident…</div></div>
-    <h3 style="margin-top:14px">Latest orders</h3>
-    <div class="orders" id="orders"></div>
-  </div>
-  <div class="card">
-    <h3>Agents talking (via Agent Relay)</h3>
-    <div class="feed" id="feed"></div>
-  </div>
+  <section class="chain">
+    <div class="co" id="co-shopco" style="--c:var(--shopco)">
+      <div class="av">S</div><div><div class="n">ShopCo</div><div class="r">the online store</div></div>
+      <div class="foot"><span class="agent">Codex</span><span class="state" id="st-shopco"><i></i><span id="s-shopco">Idle</span></span></div>
+    </div>
+    <div class="conn" id="a-shopco-payflow"><b></b></div>
+    <div class="co" id="co-payflow" style="--c:var(--payflow)">
+      <div class="av">P</div><div><div class="n">PayFlow</div><div class="r">the payment processor</div></div>
+      <div class="foot"><span class="agent">Claude Code</span><span class="state" id="st-payflow"><i></i><span id="s-payflow">Idle</span></span></div>
+    </div>
+    <div class="conn" id="a-payflow-shieldco"><b></b></div>
+    <div class="co" id="co-shieldco" style="--c:var(--shieldco)">
+      <div class="av">S</div><div><div class="n">ShieldCo</div><div class="r">the fraud checker</div></div>
+      <div class="foot"><span class="agent">OpenCode · DeepSeek</span><span class="state" id="st-shieldco"><i></i><span id="s-shieldco">Idle</span></span></div>
+    </div>
+  </section>
+
+  <section class="grid">
+    <div class="card">
+      <div class="top"><h2>The damage</h2><span class="label">ShopCo sales</span></div>
+      <div class="stat bad"><span class="label">Failed checkouts</span><b id="failed">0</b></div>
+      <div class="stat bad"><span class="label">Sales lost</span><b id="lost">$0.00</b></div>
+      <div class="stat ok"><span class="label">Won back by the agents</span><b id="recovered">$0.00</b></div>
+      <div class="try"><div id="qr"></div><div><b>Shop with us</b><span>Scan and check out on your phone</span><div class="url" id="url"></div></div></div>
+    </div>
+
+    <div class="card">
+      <div class="top"><h2>The incident</h2><span class="label">Terse durable actor</span></div>
+      <div id="room"><div class="empty">No open incident</div></div>
+      <div class="orders" id="orders"></div>
+    </div>
+
+    <div class="card">
+      <div class="top"><h2>The conversation</h2><span class="label">over Agent Relay</span></div>
+      <div class="feed" id="feed"><div class="empty">Waiting for the agents…</div></div>
+    </div>
+  </section>
+
+  <footer><span>Each company's agent sees only its own systems. Anything shared across companies passes a code-enforced privacy check.</span><span class="by">Built on<b>Agent Relay</b><b>Terse</b><b>Freestyle</b><b>OpenAI</b></span></footer>
 </div>
 
 <script>
 const $ = (s) => document.querySelector(s);
-const COLORS = { shopco: "var(--shopco)", payflow: "var(--payflow)", shieldco: "var(--shieldco)", monitor: "var(--bad)" };
+const COLORS = { shopco: "var(--shopco)", payflow: "var(--payflow)", shieldco: "var(--shieldco)", monitor: "var(--monitor)" };
+const NAMES = { shopco: "ShopCo", payflow: "PayFlow", shieldco: "ShieldCo", monitor: "Monitor" };
 const ORDER = ["shopco", "payflow", "shieldco"];
-const money = (n) => "$" + Number(n || 0).toFixed(2);
+const money = (n) => "$" + Number(n || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+setInterval(() => { $("#clock").textContent = "LIVE · " + new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }); }, 1000);
 
 function render(s) {
   $("#failed").textContent = s.impact.failed;
   $("#lost").textContent = money(s.impact.lost);
   $("#recovered").textContent = money(s.impact.recovered_amount);
-  const b = $("#banner");
-  b.textContent = s.banner;
-  b.className = "banner" + (/blocked|Incident|Root cause|declin/i.test(s.banner) ? " alert" : /recovered|normal|resolved/i.test(s.banner) ? " good" : "");
-  $("#orders").innerHTML = s.recent.map(o =>
-    `<div><span>${o.order_id} · ${money(o.amount)}</span><span class="${o.status === "paid" ? "ok" : o.status === "failed" ? "bad" : ""}">${o.recovered ? "recovered ✓" : o.status}</span></div>`).join("");
+  const alert = /blocked|Incident|Root cause|declin|still open/i.test(s.banner);
+  const good = /recovered|resolved/i.test(s.banner);
+  $("#banner").className = "banner" + (alert ? " alert" : good ? " good" : "");
+  $("#btext").textContent = s.banner;
+  $("#orders").innerHTML = s.recent.slice(0, 5).map((o) =>
+    `<div><span>${esc(o.order_id)} · ${money(o.amount)}</span><span class="${o.recovered ? "tx-rec" : o.status === "paid" ? "tx-ok" : "tx-bad"}">${o.recovered ? "RECOVERED" : o.status === "paid" ? "PAID" : "DECLINED"}</span></div>`).join("");
 }
 
 function light(from, to) {
   const a = ORDER.indexOf(from), b = ORDER.indexOf(to);
-  if (a < 0 || b < 0) return;
-  const [x, y] = a < b ? [from, to] : [to, from];
-  const el = document.getElementById(`a-${x}-${y}`) || (Math.abs(a - b) === 2 ? document.getElementById("a-payflow-shieldco") : null);
-  if (!el) return;
-  el.style.background = COLORS[from]; el.style.color = COLORS[from]; el.classList.add("lit");
-  setTimeout(() => { el.style.background = ""; el.classList.remove("lit"); }, 1500);
+  if (a < 0 || b < 0 || a === b) return;
+  const ids = a < b ? ORDER.slice(a, b + 1) : ORDER.slice(b, a + 1);
+  for (let i = 0; i < ids.length - 1; i++) {
+    const el = document.getElementById(`a-${ids[i]}-${ids[i + 1]}`);
+    if (!el) continue;
+    el.querySelector("b").style.background = COLORS[from];
+    el.classList.toggle("back", a > b);
+    el.classList.remove("go"); void el.offsetWidth; el.classList.add("go");
+  }
 }
 
-const STATUS = { EVIDENCE_REQUEST: "investigating", EVIDENCE: "sharing evidence", INNOCENT: "cleared ✓", SUSPECT: "suspect", ROOT_CAUSE: "root cause found", FIX_PROPOSAL: "proposing fix", FIX_AGREED: "fix agreed", FIX_DEPLOYED: "fix deployed ✓", STATUS: "working", RESOLVED: "done ✓" };
+const STATUS = {
+  STATUS: ["Investigating", "work"], EVIDENCE_REQUEST: ["Asking a partner", "work"], EVIDENCE: ["Sharing evidence", "work"],
+  INNOCENT: ["Cleared", "good"], SUSPECT: ["Suspect", "bad"], ROOT_CAUSE: ["Root cause", "bad"],
+  FIX_PROPOSAL: ["Fix proposed", "work"], FIX_AGREED: ["Fix agreed", "good"], FIX_DEPLOYED: ["Fix deployed", "good"], RESOLVED: ["Resolved", "good"],
+};
 function onRelay(ev) {
+  if (!ev.type && !ev.text) return;
   const feed = $("#feed");
+  feed.querySelector(".empty")?.remove();
   const who = ev.from || "?";
+  const to = String(ev.to || "");
   const line = document.createElement("div");
-  const to = ev.to ? ` → ${String(ev.to).replace(/^#/, "#")}` : "";
-  line.innerHTML = `<span class="who" style="color:${COLORS[who] || "var(--ink)"}">${who}</span>${to}: ${(ev.type ? `[${ev.type}] ` : "")}${(ev.text || "").replace(/^\[[A-Z_]+\]\s*/, "").slice(0, 110)}`;
+  line.className = "msg";
+  line.innerHTML = `<div class="a" style="background:${COLORS[who] || "var(--ink)"}">${esc((NAMES[who] || who)[0])}</div>
+    <div><div class="h"><b>${esc(NAMES[who] || who)}</b><span>→ ${esc(NAMES[to] || to)}</span>${ev.type ? `<span class="type ${esc(ev.type)}">${esc(ev.type.replace(/_/g, " "))}</span>` : ""}</div>
+    <p>${esc((ev.text || "").replace(/^\[[A-Z_]+\]\s*/, "").slice(0, 160))}</p></div>`;
   feed.prepend(line);
-  while (feed.children.length > 10) feed.lastChild.remove();
-  if (ev.from && ev.to) light(ev.from, String(ev.to).replace(/^#/, ""));
-  if (ev.from && STATUS[ev.type]) { const s = document.getElementById(`s-${ev.from}`); if (s) s.textContent = STATUS[ev.type]; }
+  while (feed.children.length > 6) feed.lastChild.remove();
+  if (ev.from && ev.to) light(ev.from, to.replace(/^#/, ""));
+  const st = STATUS[ev.type];
+  if (ev.from && st) {
+    const s = document.getElementById(`s-${ev.from}`), w = document.getElementById(`st-${ev.from}`);
+    if (s) { s.textContent = st[0]; w.className = "state " + st[1]; }
+  }
   if (ev.type === "ROOT_CAUSE" && ev.from) document.getElementById(`co-${ev.from}`)?.classList.add("root");
+  if (ev.type === "INNOCENT" && ev.from) document.getElementById(`co-${ev.from}`)?.classList.add("cleared");
 }
 
-// Incident Room: live state straight from the Terse Durable Actor's WebSocket.
+// Incident room: live state straight from the Terse Durable Actor's WebSocket.
+const STEPS = [["open", "Opened"], ["identified", "Cause"], ["fixing", "Fixing"], ["recovering", "Recover"], ["resolved", "Resolved"]];
 let room = {};
 function renderRoom() {
   const el = $("#room");
-  if (!room.status || room.status === "none") { el.innerHTML = `<div style="color:var(--muted)">No open incident · actor idle</div>`; return; }
-  const sus = Object.entries(room.suspects || {}).map(([c, s]) => `<span style="color:${COLORS[c]};font-weight:700">${c}</span> ${s === "cleared" ? "✓ cleared" : s === "root_cause" ? "⚠ root cause" : "…"}`).join(" &nbsp; ");
-  const last = (room.timeline || []).slice(-4).reverse().map(t => `<div><span style="color:${COLORS[t.company] || "var(--ink)"};font-weight:700">${t.company}</span> ${t.type}</div>`).join("");
-  el.innerHTML = `<div><b>${room.incidentId}</b> · <span class="${room.status === "resolved" ? "ok" : "bad"}">${room.status}</span></div>
-    <div style="color:var(--muted);font-size:14px">${room.writes} writes serialized · 0 conflicts${room.duplicateAlerts ? ` · ${room.duplicateAlerts} duplicate alerts merged` : ""}</div>
-    <div style="font-size:14px;margin:6px 0">${sus}</div>${last}`;
+  if (!room.status || room.status === "none") { el.innerHTML = `<div class="empty">No open incident</div>`; return; }
+  const at = STEPS.findIndex(([k]) => k === room.status);
+  const done = (i) => i < at || room.status === "resolved";
+  const bars = STEPS.map((_, i) => `<div class="${done(i) ? "done" : i === at ? "now" : ""}"></div>`).join("");
+  const labels = STEPS.map(([, l], i) => `<span class="${i <= at ? "on" : ""}">${l}</span>`).join("");
+  const sus = ORDER.filter((c) => room.suspects?.[c]).map((c) => {
+    const s = room.suspects[c];
+    return `<div><span style="color:${COLORS[c]}">${NAMES[c]}</span><span class="pill ${s === "cleared" ? "clr" : s === "root_cause" ? "rc" : "inv"}">${s === "cleared" ? "Cleared" : s === "root_cause" ? "Root cause" : "Investigating"}</span></div>`;
+  }).join("");
+  el.innerHTML = `<div class="track">${bars}</div><div class="tracklabels">${labels}</div>
+    <div class="rid"><b>${esc(room.incidentId)}</b><small>OPENED ${room.openedAt ? new Date(room.openedAt).toLocaleTimeString() : ""}</small></div>
+    <div class="kpis"><div class="kpi"><b>${room.writes ?? 0}</b><small>writes, in order, 0 conflicts</small></div><div class="kpi"><b>${room.duplicateAlerts ?? 0}</b><small>duplicate alerts merged</small></div></div>
+    <div class="sus">${sus || `<div class="empty" style="padding:8px;font-size:20px">Agents joining…</div>`}</div>`;
 }
 async function connectRoom() {
   try {
@@ -133,12 +260,15 @@ async function connectRoom() {
 function pollRoom() { setInterval(async () => { const r = await (await fetch("/api/room")).json(); if (r.state) { room = r.state; renderRoom(); } }, 2500); }
 connectRoom();
 
-fetch("/api/state").then(r => r.json()).then(s => { render(s); (s.relay || []).forEach(onRelay); });
-fetch("/api/store-url").then(r => r.json()).then(({ url }) => { $("#url").textContent = url; try { new QRCode($("#qr"), { text: url, width: 150, height: 150 }); } catch {} });
+fetch("/api/state").then((r) => r.json()).then((s) => { render(s); (s.relay || []).forEach(onRelay); });
+fetch("/api/store-url").then((r) => r.json()).then(({ url }) => { $("#url").textContent = url; try { new QRCode($("#qr"), { text: url, width: 78, height: 78, colorDark: "#15130f" }); } catch {} });
 const es = new EventSource("/events");
-es.addEventListener("state", e => render(JSON.parse(e.data)));
-es.addEventListener("relay", e => onRelay(JSON.parse(e.data)));
-es.addEventListener("reset", () => { $("#feed").innerHTML = ""; ORDER.forEach(c => { document.getElementById(`s-${c}`).textContent = "idle"; document.getElementById(`co-${c}`).classList.remove("root"); }); });
+es.addEventListener("state", (e) => render(JSON.parse(e.data)));
+es.addEventListener("relay", (e) => onRelay(JSON.parse(e.data)));
+es.addEventListener("reset", () => {
+  $("#feed").innerHTML = `<div class="empty">Waiting for the agents…</div>`;
+  ORDER.forEach((c) => { document.getElementById(`s-${c}`).textContent = "Idle"; document.getElementById(`st-${c}`).className = "state"; document.getElementById(`co-${c}`).classList.remove("root", "cleared"); });
+});
 </script>
 </body>
 </html>
