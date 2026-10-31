@@ -5,6 +5,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 import { readEnv } from "../scripts/lib/env.ts";
+import { roomEnabled, roomError, roomOpen, roomRecord, roomReset, roomSocket, roomState } from "./incident-room.ts";
 
 const ROOT = join(import.meta.dirname, "..");
 const env = readEnv("platform");
@@ -89,7 +90,18 @@ async function monitorTick(): Promise<void> {
   const windowStart = new Date(Date.now() - 30_000).toISOString();
   const recentFailures = list.filter((o) => o.status === "failed" && o.created_at >= windowStart);
   if (!incident && recentFailures.length >= 3) {
-    const id = `inc_${new Date().toISOString().slice(0, 19).replace(/[-:T]/g, "")}`;
+    const newId = `inc_${new Date().toISOString().slice(0, 19).replace(/[-:T]/g, "")}`;
+    // The Incident Room actor decides: one open incident, however many alerts arrive
+    // (even after this server restarts and forgets its own state).
+    const opened: any = await roomOpen(newId, recentFailures.length);
+    if (opened && opened.opened === false) {
+      const s: any = await roomState();
+      incident = { id: opened.incidentId, status: s?.status ?? "open", opened_at: s?.openedAt ?? new Date().toISOString(), first_failures: [], banner: "" };
+      banner = `Incident ${opened.incidentId} still open (restored from the Incident Room)`;
+      push("state", snapshot(list));
+      return;
+    }
+    const id = newId;
     const deepest = recentFailures[recentFailures.length - 1].error_code;
     incident = { id, status: "open", opened_at: new Date().toISOString(), first_failures: recentFailures.slice(0, 5).map((o) => o.request_id), banner: "" };
     banner = `Incident opened: ${recentFailures.length} failed checkouts in 30 seconds`;
@@ -170,6 +182,9 @@ function connectObserver(): void {
     }
     if (event.type === "ROOT_CAUSE") banner = `Root cause: ${envelope?.text ?? event.text}`;
     relayEvents.push(event);
+    if (event.type && event.from && event.from !== "monitor") {
+      roomRecord({ at: event.at, company: String(event.from), to: String(event.to ?? ""), type: String(event.type), text: String(envelope?.text ?? event.text) });
+    }
     if (relayEvents.length > 200) relayEvents.shift();
     push("relay", event);
   };
@@ -248,6 +263,8 @@ createServer(async (req, res) => {
         .map((e) => ({ at: e.at, from: e.from, to: e.to, type: e.type, text: e.text }));
       return json(res, 200, { incident, banner, steps });
     }
+    if (route === "GET /api/room") return json(res, 200, { enabled: roomEnabled(), error: roomError(), state: await roomState() });
+    if (route === "GET /api/room-socket") return json(res, 200, (await roomSocket()) ?? { error: "room disabled" });
     if (route === "GET /api/state") return json(res, 200, { ...snapshot(await orders().catch(() => [])), relay: relayEvents.slice(-30) });
     if (route === "GET /api/store-url") {
       const f = join(ROOT, ".tunnel-url");
@@ -294,6 +311,7 @@ createServer(async (req, res) => {
         baseline = new Date().toISOString();
         banner = "All systems normal";
         relayEvents.length = 0;
+        await roomReset();
         push("reset", {});
         return json(res, 200, { ok: true });
       }

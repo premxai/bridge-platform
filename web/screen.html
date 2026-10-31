@@ -53,7 +53,9 @@
     <div class="url" id="url"></div>
   </div>
   <div class="card">
-    <h3>Latest orders</h3>
+    <h3>Incident Room · Terse Durable Actor</h3>
+    <div id="room" class="orders"><div style="color:var(--muted)">Waiting for an incident…</div></div>
+    <h3 style="margin-top:14px">Latest orders</h3>
     <div class="orders" id="orders"></div>
   </div>
   <div class="card">
@@ -102,6 +104,34 @@ function onRelay(ev) {
   if (ev.from && STATUS[ev.type]) { const s = document.getElementById(`s-${ev.from}`); if (s) s.textContent = STATUS[ev.type]; }
   if (ev.type === "ROOT_CAUSE" && ev.from) document.getElementById(`co-${ev.from}`)?.classList.add("root");
 }
+
+// Incident Room: live state straight from the Terse Durable Actor's WebSocket.
+let room = {};
+function renderRoom() {
+  const el = $("#room");
+  if (!room.status || room.status === "none") { el.innerHTML = `<div style="color:var(--muted)">No open incident · actor idle</div>`; return; }
+  const sus = Object.entries(room.suspects || {}).map(([c, s]) => `<span style="color:${COLORS[c]};font-weight:700">${c}</span> ${s === "cleared" ? "✓ cleared" : s === "root_cause" ? "⚠ root cause" : "…"}`).join(" &nbsp; ");
+  const last = (room.timeline || []).slice(-4).reverse().map(t => `<div><span style="color:${COLORS[t.company] || "var(--ink)"};font-weight:700">${t.company}</span> ${t.type}</div>`).join("");
+  el.innerHTML = `<div><b>${room.incidentId}</b> · <span class="${room.status === "resolved" ? "ok" : "bad"}">${room.status}</span></div>
+    <div style="color:var(--muted);font-size:14px">${room.writes} writes serialized · 0 conflicts${room.duplicateAlerts ? ` · ${room.duplicateAlerts} duplicate alerts merged` : ""}</div>
+    <div style="font-size:14px;margin:6px 0">${sus}</div>${last}`;
+}
+async function connectRoom() {
+  try {
+    const g = await (await fetch("/api/room-socket")).json();
+    if (!g.websocketUrl) { pollRoom(); return; }
+    const ws = new WebSocket(g.websocketUrl);
+    ws.onmessage = (e) => {
+      const m = JSON.parse(e.data);
+      if (m.type === "state") room = { ...m.state };
+      else if (m.type === "state_update") room = { ...room, ...m.changes };
+      renderRoom();
+    };
+    ws.onclose = () => setTimeout(connectRoom, 2000);
+  } catch { pollRoom(); }
+}
+function pollRoom() { setInterval(async () => { const r = await (await fetch("/api/room")).json(); if (r.state) { room = r.state; renderRoom(); } }, 2500); }
+connectRoom();
 
 fetch("/api/state").then(r => r.json()).then(s => { render(s); (s.relay || []).forEach(onRelay); });
 fetch("/api/store-url").then(r => r.json()).then(({ url }) => { $("#url").textContent = url; try { new QRCode($("#qr"), { text: url, width: 150, height: 150 }); } catch {} });

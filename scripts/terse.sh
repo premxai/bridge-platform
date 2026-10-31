@@ -7,9 +7,11 @@
 #   bash scripts/terse.sh actor dev
 #   bash scripts/terse.sh deploy
 set -euo pipefail
+export MSYS_NO_PATHCONV=1   # stop Git Bash from rewriting /app into a Windows path
 here="$(cd "$(dirname "$0")/.." && pwd -W 2>/dev/null || pwd)"
 mkdir -p "$here/actors"
-exec docker run -it --rm \
+tty_flag=""; [ -t 0 ] && tty_flag="-it"
+exec docker run $tty_flag --rm \
   -v terse-home:/root \
   -v "$here/actors:/app" \
   -w /app \
