@@ -12,7 +12,7 @@ const paint = (who: string) => `${C.bold}${COLOR[who] ?? ""}${who}${C.reset}`;
 function header() {
   console.clear();
   console.log(`${C.bold}AGENT RELAY ROOM${C.reset}  ${C.grey}workspace bridge-hauntedhacks · live${C.reset}`);
-  console.log(`${paint("shopco")} store (Codex)   ${paint("payflow")} payments (Claude Code)   ${paint("shieldco")} fraud checks (Gemini)\n`);
+  console.log(`${paint("shopco")} store (Codex)   ${paint("payflow")} payments (Claude Code)   ${paint("shieldco")} fraud checks (OpenCode · DeepSeek)\n`);
 }
 
 function show(raw: any) {
