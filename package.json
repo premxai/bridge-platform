@@ -3,5 +3,13 @@
   "private": true,
   "type": "module",
   "version": "0.1.0",
-  "scripts": {}
+  "scripts": {
+    "relay:setup": "tsx scripts/relay-setup.ts",
+    "relay:smoke": "tsx scripts/relay-smoke.ts",
+    "db:setup": "tsx scripts/db-setup.ts",
+    "db:smoke": "tsx scripts/db-smoke.ts"
+  },
+  "dependencies": {
+    "postgres": "^3.4.9"
+  }
 }
