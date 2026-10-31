@@ -7,7 +7,8 @@
     "relay:setup": "tsx scripts/relay-setup.ts",
     "relay:smoke": "tsx scripts/relay-smoke.ts",
     "db:setup": "tsx scripts/db-setup.ts",
-    "db:smoke": "tsx scripts/db-smoke.ts"
+    "db:smoke": "tsx scripts/db-smoke.ts",
+    "start": "tsx src/server.ts"
   },
   "dependencies": {
     "postgres": "^3.4.9"

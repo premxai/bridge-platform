@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ShopCo</title>
+<style>
+  :root { --ink:#14161a; --muted:#6b7280; --line:#e5e7eb; --brand:#2563eb; --ok:#15803d; --bad:#b91c1c; --bg:#f7f7f8; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background:var(--bg); color:var(--ink); }
+  header { background:var(--brand); color:#fff; padding:16px; font-weight:700; font-size:20px; }
+  header small { display:block; font-weight:400; font-size:13px; opacity:.85; }
+  main { max-width:480px; margin:0 auto; padding:16px; }
+  .product { display:flex; align-items:center; justify-content:space-between; background:#fff; border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin-bottom:10px; }
+  .name { font-weight:600; }
+  .price { color:var(--muted); font-size:14px; margin-top:2px; }
+  button { background:var(--brand); color:#fff; border:0; border-radius:10px; padding:10px 16px; font-size:15px; font-weight:600; }
+  button:disabled { opacity:.5; }
+  #result { display:none; border-radius:12px; padding:18px; margin-bottom:16px; font-size:16px; }
+  #result.ok { display:block; background:#dcfce7; color:var(--ok); }
+  #result.bad { display:block; background:#fee2e2; color:var(--bad); }
+  #result b { display:block; font-size:20px; margin-bottom:4px; }
+</style>
+</head>
+<body>
+<header>ShopCo<small>Everyday goods, delivered</small></header>
+<main>
+  <div id="result"></div>
+  <div id="products">Loading…</div>
+</main>
+<script>
+const $ = (s) => document.querySelector(s);
+async function load() {
+  const products = await (await fetch("/api/products")).json();
+  $("#products").innerHTML = products.map(p => `
+    <div class="product">
+      <div><div class="name">${p.name}</div><div class="price">$${p.price.toFixed(2)}</div></div>
+      <button data-id="${p.id}">Buy</button>
+    </div>`).join("");
+  document.querySelectorAll("button[data-id]").forEach(b => b.onclick = () => buy(b));
+}
+async function buy(btn) {
+  btn.disabled = true; btn.textContent = "Paying…";
+  const r = await (await fetch("/api/checkout", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ product_id: btn.dataset.id }) })).json();
+  const box = $("#result");
+  if (r.status === "paid") {
+    box.className = "ok";
+    box.innerHTML = `<b>Order confirmed ✓</b>${r.product} · $${r.amount.toFixed(2)} · ${r.order_id}`;
+  } else {
+    box.className = "bad";
+    box.innerHTML = `<b>Payment declined</b>We couldn't complete your order (${r.order_id}). Please try again later.`;
+  }
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  btn.disabled = false; btn.textContent = "Buy";
+}
+load();
+</script>
+</body>
+</html>

@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fault Panel</title>
+<style>
+  body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background:#111318; color:#f3f4f6; }
+  main { max-width:560px; margin:0 auto; padding:24px 16px; }
+  h1 { font-size:22px; margin:0 0 4px; } p.sub { color:#9ca3af; margin:0 0 24px; }
+  section { background:#1b1e25; border:1px solid #2a2f3a; border-radius:12px; padding:16px; margin-bottom:16px; }
+  h2 { font-size:15px; color:#9ca3af; margin:0 0 12px; text-transform:uppercase; letter-spacing:.05em; }
+  .row { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  button { border:0; border-radius:10px; padding:12px 18px; font-size:16px; font-weight:700; cursor:pointer; }
+  .break { background:#dc2626; color:#fff; } .heal { background:#16a34a; color:#fff; } .plain { background:#2a2f3a; color:#f3f4f6; }
+  .on { outline:3px solid #60a5fa; }
+  .state { font-weight:700; } .state.bad { color:#f87171; } .state.ok { color:#4ade80; }
+  #log { color:#9ca3af; font-size:14px; margin-top:8px; min-height:20px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Fault Panel</h1>
+  <p class="sub">Laptop only. The agents can't see this page.</p>
+
+  <section>
+    <h2>Break a company</h2>
+    <div class="row">
+      <div><div>PayFlow (payments)</div><div class="state" id="payflow-state">…</div></div>
+      <div><button class="break" onclick="fault('payflow', true)">Break</button> <button class="heal" onclick="fault('payflow', false)">Heal</button></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Simulated shoppers</h2>
+    <div class="row">
+      <button class="plain" data-mode="off" onclick="traffic('off')">Off</button>
+      <button class="plain" data-mode="normal" onclick="traffic('normal')">Normal (1 every 3s)</button>
+      <button class="plain" data-mode="burst" onclick="traffic('burst')">Burst (1 per second)</button>
+    </div>
+  </section>
+
+  <section>
+    <h2>Demo</h2>
+    <div class="row">
+      <button class="plain" onclick="reset()">Reset demo</button>
+      <a href="/screen" target="_blank" style="color:#60a5fa">Open screen ↗</a>
+      <a href="/" target="_blank" style="color:#60a5fa">Open store ↗</a>
+    </div>
+    <div id="log"></div>
+  </section>
+</main>
+<script>
+const post = (path, body) => fetch(path, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body || {}) }).then(r => r.json());
+const log = (t) => document.getElementById("log").textContent = t;
+async function fault(company, broken) { await post("/control/fault", { company, broken }); log(`${company} ${broken ? "broken" : "healed"} at ${new Date().toLocaleTimeString()}`); }
+async function traffic(mode) { await post("/control/traffic", { mode }); log(`traffic: ${mode}`); }
+async function reset() { await post("/control/reset"); log("demo reset: faults healed, counters cleared"); }
+function render(s) {
+  const el = document.getElementById("payflow-state");
+  const bad = s.faults && s.faults.payflow;
+  el.textContent = bad ? "BROKEN (sending cents)" : "Healthy";
+  el.className = "state " + (bad ? "bad" : "ok");
+  document.querySelectorAll("[data-mode]").forEach(b => b.classList.toggle("on", b.dataset.mode === s.trafficMode));
+}
+fetch("/api/state").then(r => r.json()).then(render);
+new EventSource("/events").addEventListener("state", e => render(JSON.parse(e.data)));
+</script>
+</body>
+</html>

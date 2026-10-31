@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bridge</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  :root { --bg:#0e1015; --panel:#171a21; --line:#2a2f3a; --ink:#f3f4f6; --muted:#9ca3af;
+          --shopco:#3b82f6; --payflow:#22c55e; --shieldco:#f59e0b; --bad:#ef4444; --ok:#22c55e; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+  .chain { display:flex; align-items:center; justify-content:center; gap:0; padding:20px 24px 8px; }
+  .co { width:230px; text-align:center; padding:14px; border-radius:14px; background:var(--panel); border:3px solid var(--line); transition:border-color .3s, box-shadow .3s; }
+  .co .n { font-size:26px; font-weight:800; } .co .r { font-size:15px; color:var(--muted); } .co .s { margin-top:6px; font-size:16px; font-weight:700; min-height:20px; }
+  .co.root { border-color:var(--bad); box-shadow:0 0 24px rgba(239,68,68,.5); }
+  .arrow { width:110px; height:6px; background:var(--line); position:relative; border-radius:3px; transition:background .2s; }
+  .arrow.lit { box-shadow:0 0 18px currentColor; }
+  .banner { margin:12px 24px; padding:16px 20px; border-radius:12px; background:var(--panel); border:1px solid var(--line); font-size:28px; font-weight:800; text-align:center; }
+  .banner.alert { background:#3b1113; border-color:var(--bad); }
+  .banner.good { background:#0f2a18; border-color:var(--ok); }
+  .grid { display:grid; grid-template-columns: 1.1fr 1fr 1.3fr; gap:16px; padding:8px 24px 24px; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:16px; }
+  .card h3 { margin:0 0 10px; font-size:14px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
+  .stat { display:flex; justify-content:space-between; align-items:baseline; padding:6px 0; font-size:20px; }
+  .stat b { font-size:34px; } .bad { color:var(--bad); } .ok { color:var(--ok); }
+  .feed div { font-size:16px; padding:6px 0; border-bottom:1px solid var(--line); }
+  .feed .who { font-weight:800; }
+  .orders div { font-size:15px; padding:4px 0; display:flex; justify-content:space-between; }
+  #qr { background:#fff; padding:8px; display:inline-block; border-radius:8px; margin-top:8px; }
+  .url { font-size:13px; color:var(--muted); word-break:break-all; margin-top:6px; }
+</style>
+</head>
+<body>
+<div class="chain">
+  <div class="co" id="co-shopco"><div class="n" style="color:var(--shopco)">ShopCo</div><div class="r">store · Codex</div><div class="s" id="s-shopco">idle</div></div>
+  <div class="arrow" id="a-shopco-payflow"></div>
+  <div class="co" id="co-payflow"><div class="n" style="color:var(--payflow)">PayFlow</div><div class="r">payments · Claude Code</div><div class="s" id="s-payflow">idle</div></div>
+  <div class="arrow" id="a-payflow-shieldco"></div>
+  <div class="co" id="co-shieldco"><div class="n" style="color:var(--shieldco)">ShieldCo</div><div class="r">fraud checks · Gemini</div><div class="s" id="s-shieldco">idle</div></div>
+</div>
+
+<div class="banner" id="banner">All systems normal</div>
+
+<div class="grid">
+  <div class="card">
+    <h3>Impact</h3>
+    <div class="stat"><span>Failed checkouts</span><b class="bad" id="failed">0</b></div>
+    <div class="stat"><span>Lost sales</span><b class="bad" id="lost">$0</b></div>
+    <div class="stat"><span>Recovered</span><b class="ok" id="recovered">$0</b></div>
+    <h3 style="margin-top:14px">Try it · scan to shop</h3>
+    <div id="qr"></div>
+    <div class="url" id="url"></div>
+  </div>
+  <div class="card">
+    <h3>Latest orders</h3>
+    <div class="orders" id="orders"></div>
+  </div>
+  <div class="card">
+    <h3>Agents talking (via Agent Relay)</h3>
+    <div class="feed" id="feed"></div>
+  </div>
+</div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const COLORS = { shopco: "var(--shopco)", payflow: "var(--payflow)", shieldco: "var(--shieldco)", monitor: "var(--bad)" };
+const ORDER = ["shopco", "payflow", "shieldco"];
+const money = (n) => "$" + Number(n || 0).toFixed(2);
+
+function render(s) {
+  $("#failed").textContent = s.impact.failed;
+  $("#lost").textContent = money(s.impact.lost);
+  $("#recovered").textContent = money(s.impact.recovered_amount);
+  const b = $("#banner");
+  b.textContent = s.banner;
+  b.className = "banner" + (/blocked|Incident|Root cause|declin/i.test(s.banner) ? " alert" : /recovered|normal|resolved/i.test(s.banner) ? " good" : "");
+  $("#orders").innerHTML = s.recent.map(o =>
+    `<div><span>${o.order_id} · ${money(o.amount)}</span><span class="${o.status === "paid" ? "ok" : o.status === "failed" ? "bad" : ""}">${o.recovered ? "recovered ✓" : o.status}</span></div>`).join("");
+}
+
+function light(from, to) {
+  const a = ORDER.indexOf(from), b = ORDER.indexOf(to);
+  if (a < 0 || b < 0) return;
+  const [x, y] = a < b ? [from, to] : [to, from];
+  const el = document.getElementById(`a-${x}-${y}`) || (Math.abs(a - b) === 2 ? document.getElementById("a-payflow-shieldco") : null);
+  if (!el) return;
+  el.style.background = COLORS[from]; el.style.color = COLORS[from]; el.classList.add("lit");
+  setTimeout(() => { el.style.background = ""; el.classList.remove("lit"); }, 1500);
+}
+
+const STATUS = { EVIDENCE_REQUEST: "investigating", EVIDENCE: "sharing evidence", INNOCENT: "cleared ✓", SUSPECT: "suspect", ROOT_CAUSE: "root cause found", FIX_PROPOSAL: "proposing fix", FIX_AGREED: "fix agreed", FIX_DEPLOYED: "fix deployed ✓", STATUS: "working", RESOLVED: "done ✓" };
+function onRelay(ev) {
+  const feed = $("#feed");
+  const who = ev.from || "?";
+  const line = document.createElement("div");
+  const to = ev.to ? ` → ${String(ev.to).replace(/^#/, "#")}` : "";
+  line.innerHTML = `<span class="who" style="color:${COLORS[who] || "var(--ink)"}">${who}</span>${to}: ${(ev.type ? `[${ev.type}] ` : "")}${(ev.text || "").replace(/^\[[A-Z_]+\]\s*/, "").slice(0, 110)}`;
+  feed.prepend(line);
+  while (feed.children.length > 10) feed.lastChild.remove();
+  if (ev.from && ev.to) light(ev.from, String(ev.to).replace(/^#/, ""));
+  if (ev.from && STATUS[ev.type]) { const s = document.getElementById(`s-${ev.from}`); if (s) s.textContent = STATUS[ev.type]; }
+  if (ev.type === "ROOT_CAUSE" && ev.from) document.getElementById(`co-${ev.from}`)?.classList.add("root");
+}
+
+fetch("/api/state").then(r => r.json()).then(s => { render(s); (s.relay || []).forEach(onRelay); });
+fetch("/api/store-url").then(r => r.json()).then(({ url }) => { $("#url").textContent = url; try { new QRCode($("#qr"), { text: url, width: 150, height: 150 }); } catch {} });
+const es = new EventSource("/events");
+es.addEventListener("state", e => render(JSON.parse(e.data)));
+es.addEventListener("relay", e => onRelay(JSON.parse(e.data)));
+es.addEventListener("reset", () => { $("#feed").innerHTML = ""; ORDER.forEach(c => { document.getElementById(`s-${c}`).textContent = "idle"; document.getElementById(`co-${c}`).classList.remove("root"); }); });
+</script>
+</body>
+</html>
