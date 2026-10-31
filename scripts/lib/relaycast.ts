@@ -15,15 +15,23 @@ export async function relay<T = any>(
   const headers: Record<string, string> = { "content-type": "application/json" };
   if (opts.token) headers.authorization = `Bearer ${opts.token}`;
   if (opts.idempotencyKey) headers["idempotency-key"] = opts.idempotencyKey;
-  const res = await fetch(`${RELAY_BASE}${path}`, {
-    method,
-    headers,
-    body: opts.body === undefined ? undefined : JSON.stringify(opts.body),
-  });
-  const text = await res.text();
-  const json = text ? JSON.parse(text) : {};
-  if (!res.ok || json.ok === false) {
-    throw new RelayError(res.status, json?.error?.code ?? "unknown", json?.error?.message ?? text);
+  // Retries when the hosted service is busy (429/5xx), honoring Retry-After.
+  for (let attempt = 1; ; attempt++) {
+    const res = await fetch(`${RELAY_BASE}${path}`, {
+      method,
+      headers,
+      body: opts.body === undefined ? undefined : JSON.stringify(opts.body),
+    });
+    const text = await res.text();
+    const json = text ? JSON.parse(text) : {};
+    if ((res.status === 429 || res.status >= 500) && attempt < 6) {
+      const after = Number(res.headers.get("retry-after"));
+      await new Promise((r) => setTimeout(r, (after > 0 ? Math.min(after, 5) : attempt) * 1000));
+      continue;
+    }
+    if (!res.ok || json.ok === false) {
+      throw new RelayError(res.status, json?.error?.code ?? "unknown", json?.error?.message ?? text);
+    }
+    return (json.data ?? json) as T;
   }
-  return (json.data ?? json) as T;
 }

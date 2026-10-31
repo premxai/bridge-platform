@@ -61,11 +61,17 @@ function snapshot(list: Order[] = []) {
 // ---------- monitor: notices failures and alerts ShopCo's agent ----------
 async function postAlert(text: string): Promise<void> {
   if (!env.RELAY_ALERT_WEBHOOK_URL) return;
-  await fetch(env.RELAY_ALERT_WEBHOOK_URL, {
-    method: "POST",
-    headers: { "content-type": "application/json", authorization: `Bearer ${env.RELAY_ALERT_WEBHOOK_TOKEN}` },
-    body: JSON.stringify({ text, author: "monitor", source: "bridge-monitor" }),
-  }).catch((e) => console.error("alert failed", e));
+  // Retry while Agent Relay is busy so the alert is never lost.
+  for (let attempt = 1; attempt <= 6; attempt++) {
+    const res = await fetch(env.RELAY_ALERT_WEBHOOK_URL, {
+      method: "POST",
+      headers: { "content-type": "application/json", authorization: `Bearer ${env.RELAY_ALERT_WEBHOOK_TOKEN}` },
+      body: JSON.stringify({ text, author: "monitor", source: "bridge-monitor" }),
+    }).catch(() => null);
+    if (res?.ok) return;
+    await new Promise((r) => setTimeout(r, attempt * 1000));
+  }
+  console.error("alert failed after retries");
 }
 
 async function monitorTick(): Promise<void> {
