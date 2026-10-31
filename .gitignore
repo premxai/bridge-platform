@@ -5,3 +5,4 @@ dist/
 !.env.example
 *.log
 .tunnel-url
+logs/

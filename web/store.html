@@ -5,55 +5,253 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ShopCo</title>
 <style>
-  :root { --ink:#14161a; --muted:#6b7280; --line:#e5e7eb; --brand:#2563eb; --ok:#15803d; --bad:#b91c1c; --bg:#f7f7f8; }
-  * { box-sizing: border-box; }
-  body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background:var(--bg); color:var(--ink); }
-  header { background:var(--brand); color:#fff; padding:16px; font-weight:700; font-size:20px; }
-  header small { display:block; font-weight:400; font-size:13px; opacity:.85; }
-  main { max-width:480px; margin:0 auto; padding:16px; }
-  .product { display:flex; align-items:center; justify-content:space-between; background:#fff; border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin-bottom:10px; }
-  .name { font-weight:600; }
-  .price { color:var(--muted); font-size:14px; margin-top:2px; }
-  button { background:var(--brand); color:#fff; border:0; border-radius:10px; padding:10px 16px; font-size:15px; font-weight:600; }
-  button:disabled { opacity:.5; }
-  #result { display:none; border-radius:12px; padding:18px; margin-bottom:16px; font-size:16px; }
-  #result.ok { display:block; background:#dcfce7; color:var(--ok); }
-  #result.bad { display:block; background:#fee2e2; color:var(--bad); }
-  #result b { display:block; font-size:20px; margin-bottom:4px; }
+  :root { --ink:#111827; --muted:#6b7280; --line:#e5e7eb; --brand:#1d4ed8; --brand2:#1e3a8a; --ok:#15803d; --okbg:#dcfce7; --bad:#b91c1c; --badbg:#fee2e2; --warn:#92400e; --warnbg:#fef3c7; --bg:#f3f4f6; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background:var(--bg); color:var(--ink); }
+  a { color:inherit; text-decoration:none; }
+  header { position:sticky; top:0; z-index:5; background:var(--brand2); color:#fff; }
+  .bar { max-width:1100px; margin:0 auto; display:flex; align-items:center; gap:12px; padding:10px 16px; }
+  .logo { font-weight:900; font-size:22px; letter-spacing:-.5px; white-space:nowrap; }
+  .logo span { color:#fbbf24; }
+  .search { flex:1; display:flex; }
+  .search input { flex:1; min-width:0; border:0; border-radius:8px; padding:10px 12px; font-size:15px; }
+  .hlink { white-space:nowrap; font-size:14px; padding:6px 8px; border-radius:8px; }
+  .hlink:hover { background:rgba(255,255,255,.12); }
+  .count { background:#fbbf24; color:#111; border-radius:999px; padding:1px 7px; font-weight:800; font-size:12px; margin-left:4px; }
+  nav.cats { background:var(--brand); }
+  nav.cats .bar { padding:6px 16px; overflow-x:auto; gap:6px; }
+  .chip { color:#e0e7ff; font-size:14px; padding:6px 10px; border-radius:999px; white-space:nowrap; cursor:pointer; }
+  .chip.on { background:#fff; color:var(--brand2); font-weight:700; }
+  main { max-width:1100px; margin:0 auto; padding:16px; }
+  .hero { background:linear-gradient(120deg,#1e3a8a,#2563eb); color:#fff; border-radius:16px; padding:22px; margin-bottom:16px; }
+  .hero b { display:block; font-size:24px; } .hero span { opacity:.85; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(170px,1fr)); gap:14px; }
+  .card { background:#fff; border:1px solid var(--line); border-radius:14px; overflow:hidden; display:flex; flex-direction:column; }
+  .img { aspect-ratio:1.2; display:flex; align-items:center; justify-content:center; font-size:64px; }
+  .body { padding:12px; display:flex; flex-direction:column; gap:4px; flex:1; }
+  .name { font-weight:650; font-size:15px; }
+  .stars { color:#f59e0b; font-size:13px; } .stars small { color:var(--muted); }
+  .price { font-weight:800; font-size:18px; margin-top:auto; }
+  .btn { display:inline-block; text-align:center; border:0; border-radius:10px; padding:11px 16px; font-size:15px; font-weight:700; cursor:pointer; background:#fbbf24; color:#111; }
+  .btn.primary { background:var(--brand); color:#fff; }
+  .btn.ghost { background:#fff; border:1px solid var(--line); }
+  .btn.block { width:100%; }
+  .btn:disabled { opacity:.6; cursor:default; }
+  .panel { background:#fff; border:1px solid var(--line); border-radius:14px; padding:16px; margin-bottom:14px; }
+  .two { display:grid; grid-template-columns:1.4fr 1fr; gap:16px; } @media (max-width:720px) { .two { grid-template-columns:1fr; } }
+  .row { display:flex; justify-content:space-between; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--line); }
+  .row:last-child { border-bottom:0; }
+  .qty button { width:30px; height:30px; border-radius:8px; border:1px solid var(--line); background:#fff; font-size:16px; }
+  label { display:block; font-size:13px; color:var(--muted); margin:10px 0 4px; }
+  input.f { width:100%; padding:11px 12px; border:1px solid var(--line); border-radius:10px; font-size:15px; background:#fafafa; }
+  .demo { font-size:12px; color:var(--warn); background:var(--warnbg); border-radius:8px; padding:6px 10px; margin-top:10px; }
+  .status { border-radius:14px; padding:18px; margin-bottom:14px; }
+  .status.ok { background:var(--okbg); color:var(--ok); } .status.bad { background:var(--badbg); color:var(--bad); } .status.wait { background:#e0e7ff; color:var(--brand2); }
+  .status b { display:block; font-size:22px; margin-bottom:4px; }
+  .live { border-left:3px solid var(--brand); padding-left:12px; }
+  .live div { padding:6px 0; font-size:14px; } .live .t { color:var(--muted); font-size:12px; }
+  .pill { font-size:12px; font-weight:800; border-radius:999px; padding:3px 9px; }
+  .pill.paid { background:var(--okbg); color:var(--ok); } .pill.failed { background:var(--badbg); color:var(--bad); } .pill.rec { background:#dbeafe; color:var(--brand); }
+  .spinner { width:42px; height:42px; border:4px solid #c7d2fe; border-top-color:var(--brand); border-radius:50%; animation:spin 1s linear infinite; margin:10px auto; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .pulse { display:inline-block; width:9px; height:9px; border-radius:50%; background:var(--brand); margin-right:6px; animation:p 1.2s infinite; }
+  @keyframes p { 50% { opacity:.25; } }
+  .muted { color:var(--muted); font-size:14px; }
+  footer { text-align:center; color:var(--muted); font-size:12px; padding:24px; }
 </style>
 </head>
 <body>
-<header>ShopCo<small>Everyday goods, delivered</small></header>
-<main>
-  <div id="result"></div>
-  <div id="products">Loading…</div>
-</main>
+<header>
+  <div class="bar">
+    <a class="logo" href="#/">Shop<span>Co</span></a>
+    <div class="search"><input id="q" placeholder="Search ShopCo" autocomplete="off"></div>
+    <a class="hlink" href="#/orders">Orders</a>
+    <a class="hlink" href="#/cart">Cart<span class="count" id="count">0</span></a>
+  </div>
+</header>
+<nav class="cats"><div class="bar" id="cats"></div></nav>
+<main id="app"></main>
+<footer>ShopCo is a demo store for Haunted Hacks. No real payments are taken.</footer>
+
 <script>
 const $ = (s) => document.querySelector(s);
-async function load() {
-  const products = await (await fetch("/api/products")).json();
-  $("#products").innerHTML = products.map(p => `
-    <div class="product">
-      <div><div class="name">${p.name}</div><div class="price">$${p.price.toFixed(2)}</div></div>
-      <button data-id="${p.id}">Buy</button>
-    </div>`).join("");
-  document.querySelectorAll("button[data-id]").forEach(b => b.onclick = () => buy(b));
+const money = (n) => "$" + Number(n).toFixed(2);
+const store = { get(k, d) { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } }, set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} } };
+let shopper = store.get("shopper", null);
+if (!shopper) { shopper = Math.random().toString(36).slice(2, 10); store.set("shopper", shopper); }
+let cart = store.get("cart", []);
+let products = [];
+let category = "All";
+let timers = [];
+
+const saveCart = () => { store.set("cart", cart); $("#count").textContent = cart.reduce((s, i) => s + i.qty, 0); };
+const find = (id) => products.find((p) => p.id === id);
+const stars = (r, n) => `<div class="stars">${"★".repeat(Math.round(r))}${"☆".repeat(5 - Math.round(r))} <small>${r} (${n})</small></div>`;
+const api = (p, body) => fetch(p, body ? { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) } : {}).then((r) => r.json());
+function clearTimers() { timers.forEach(clearInterval); timers = []; }
+
+function addToCart(id, qty = 1) {
+  const line = cart.find((i) => i.product_id === id);
+  if (line) line.qty += qty; else cart.push({ product_id: id, qty });
+  saveCart();
 }
-async function buy(btn) {
-  btn.disabled = true; btn.textContent = "Paying…";
-  const r = await (await fetch("/api/checkout", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ product_id: btn.dataset.id }) })).json();
-  const box = $("#result");
-  if (r.status === "paid") {
-    box.className = "ok";
-    box.innerHTML = `<b>Order confirmed ✓</b>${r.product} · $${r.amount.toFixed(2)} · ${r.order_id}`;
-  } else {
-    box.className = "bad";
-    box.innerHTML = `<b>Payment declined</b>We couldn't complete your order (${r.order_id}). Please try again later.`;
+
+function renderCats() {
+  const cats = ["All", ...new Set(products.map((p) => p.category))];
+  $("#cats").innerHTML = cats.map((c) => `<span class="chip ${c === category ? "on" : ""}" data-c="${c}">${c}</span>`).join("");
+  document.querySelectorAll(".chip").forEach((el) => el.onclick = () => { category = el.dataset.c; location.hash = "#/"; route(); });
+}
+
+function home() {
+  const q = $("#q").value.trim().toLowerCase();
+  const list = products.filter((p) => (category === "All" || p.category === category) && (!q || p.name.toLowerCase().includes(q)));
+  $("#app").innerHTML = `
+    <div class="hero"><b>Fall essentials, delivered tomorrow</b><span>Free shipping on orders over $50</span></div>
+    <div class="grid">${list.map((p) => `
+      <div class="card">
+        <a href="#/p/${p.id}" class="img" style="background:${p.tint}">${p.icon}</a>
+        <div class="body">
+          <a href="#/p/${p.id}" class="name">${p.name}</a>
+          ${stars(p.rating, p.reviews)}
+          <div class="price">${money(p.price)}</div>
+          <button class="btn" data-add="${p.id}">Add to cart</button>
+        </div>
+      </div>`).join("") || `<p class="muted">No products match.</p>`}</div>`;
+  document.querySelectorAll("[data-add]").forEach((b) => b.onclick = () => { addToCart(b.dataset.add); b.textContent = "Added ✓"; setTimeout(() => b.textContent = "Add to cart", 900); });
+}
+
+function product(id) {
+  const p = find(id);
+  if (!p) return home();
+  $("#app").innerHTML = `
+    <div class="two">
+      <div class="panel img" style="background:${p.tint};font-size:120px;border-radius:14px">${p.icon}</div>
+      <div class="panel">
+        <div class="muted">${p.category}</div>
+        <h1 style="margin:4px 0">${p.name}</h1>
+        ${stars(p.rating, p.reviews)}
+        <p style="font-size:28px;font-weight:800;margin:10px 0">${money(p.price)}</p>
+        <p>${p.blurb}</p>
+        <p class="muted">In stock · Delivery tomorrow</p>
+        <button class="btn block" id="add">Add to cart</button>
+        <div style="height:8px"></div>
+        <button class="btn primary block" id="buy">Buy now</button>
+      </div>
+    </div>`;
+  $("#add").onclick = () => { addToCart(p.id); $("#add").textContent = "Added ✓"; };
+  $("#buy").onclick = () => { addToCart(p.id); location.hash = "#/checkout"; };
+}
+
+function cartPage() {
+  const total = cart.reduce((s, i) => s + find(i.product_id).price * i.qty, 0);
+  $("#app").innerHTML = `
+    <div class="two">
+      <div class="panel"><h2 style="margin-top:0">Your cart</h2>
+        ${cart.length ? cart.map((i) => { const p = find(i.product_id); return `
+          <div class="row"><div style="display:flex;gap:10px;align-items:center"><span style="font-size:32px">${p.icon}</span><div><div class="name">${p.name}</div><div class="muted">${money(p.price)}</div></div></div>
+          <div class="qty"><button data-dec="${p.id}">−</button> ${i.qty} <button data-inc="${p.id}">+</button></div></div>`; }).join("") : `<p class="muted">Your cart is empty. <a href="#/" style="color:var(--brand)">Keep shopping</a></p>`}
+      </div>
+      <div class="panel"><div class="row"><span>Subtotal</span><b>${money(total)}</b></div>
+        <button class="btn primary block" ${cart.length ? "" : "disabled"} onclick="location.hash='#/checkout'">Proceed to checkout</button></div>
+    </div>`;
+  document.querySelectorAll("[data-inc]").forEach((b) => b.onclick = () => { addToCart(b.dataset.inc, 1); cartPage(); });
+  document.querySelectorAll("[data-dec]").forEach((b) => b.onclick = () => { const l = cart.find((i) => i.product_id === b.dataset.dec); l.qty -= 1; cart = cart.filter((i) => i.qty > 0); saveCart(); cartPage(); });
+}
+
+function checkout() {
+  if (!cart.length) { location.hash = "#/cart"; return; }
+  const total = cart.reduce((s, i) => s + find(i.product_id).price * i.qty, 0);
+  $("#app").innerHTML = `
+    <div class="two">
+      <div>
+        <div class="panel"><h2 style="margin-top:0">Shipping</h2>
+          <label>Full name</label><input class="f" value="Alex Rivera" readonly>
+          <label>Address</label><input class="f" value="500 Market St, San Francisco, CA 94105" readonly>
+        </div>
+        <div class="panel"><h2 style="margin-top:0">Payment</h2>
+          <label>Card number</label><input class="f" value="4242 4242 4242 4242" readonly>
+          <div style="display:flex;gap:10px"><div style="flex:1"><label>Expiry</label><input class="f" value="12/29" readonly></div><div style="flex:1"><label>CVC</label><input class="f" value="123" readonly></div></div>
+          <div class="demo">Demo card: no real payment is taken. Processed by PayFlow · Fraud screening by ShieldCo</div>
+        </div>
+      </div>
+      <div class="panel"><h2 style="margin-top:0">Order summary</h2>
+        ${cart.map((i) => { const p = find(i.product_id); return `<div class="row"><span>${p.icon} ${p.name} × ${i.qty}</span><span>${money(p.price * i.qty)}</span></div>`; }).join("")}
+        <div class="row"><span>Shipping</span><span>${total >= 50 ? "Free" : money(4.99)}</span></div>
+        <div class="row"><b>Total</b><b>${money(total)}</b></div>
+        <button class="btn primary block" id="place">Place order</button>
+      </div>
+    </div>`;
+  $("#place").onclick = placeOrder;
+}
+
+async function placeOrder() {
+  $("#app").innerHTML = `<div class="panel" style="text-align:center"><div class="spinner"></div><b>Processing payment…</b><p class="muted">Contacting PayFlow</p></div>`;
+  const r = await api("/api/checkout", { shopper, items: cart.map(({ product_id, qty }) => ({ product_id, qty })) });
+  cart = []; saveCart();
+  location.hash = `#/order/${r.order_id}`;
+}
+
+const WHO = { shopco: "ShopCo (store)", payflow: "PayFlow (payments partner)", shieldco: "ShieldCo (fraud checks partner)", monitor: "Monitoring" };
+const SAY = {
+  INCIDENT_OPENED: "noticed failed checkouts and opened an incident",
+  STATUS: "is working on it", EVIDENCE_REQUEST: "asked a partner for evidence", EVIDENCE: "shared evidence",
+  INNOCENT: "checked its systems: not the cause", SUSPECT: "found something suspicious", ROOT_CAUSE: "found the root cause",
+  FIX_PROPOSAL: "proposed a fix", FIX_AGREED: "agreed on the fix", FIX_DEPLOYED: "deployed the fix", RETRY_PLAN: "is retrying failed orders", RESOLVED: "resolved the incident",
+};
+
+async function orderPage(id) {
+  async function draw() {
+    const o = await api(`/api/order?id=${id}`);
+    if (o.error) { $("#app").innerHTML = `<div class="panel">Order not found.</div>`; return; }
+    const items = (o.items || []).map((i) => `${i.name} × ${i.qty}`).join(", ");
+    let html = "";
+    if (o.status === "paid" && o.recovered) {
+      html = `<div class="status ok"><b>Good news, your order went through ✓</b>Your payment was declined earlier because of a problem between our partners. It's fixed, and order ${o.order_id} has been charged ${money(o.amount)}. No need to do anything.</div>`;
+    } else if (o.status === "paid") {
+      html = `<div class="status ok"><b>Thank you! Order confirmed ✓</b>Order ${o.order_id} · ${money(o.amount)} · arriving tomorrow</div>`;
+    } else {
+      const s = await api("/api/incident-status");
+      const steps = s.steps || [];
+      html = `<div class="status bad"><b>Payment declined</b>We couldn't complete order ${o.order_id} (${money(o.amount)}). Your card was not charged.</div>
+        <div class="panel"><h3 style="margin-top:0"><span class="pulse"></span>We're on it</h3>
+          <p class="muted">ShopCo and its payment partners are investigating together right now. If the problem is on our side, we'll complete your order automatically. You can keep this page open.</p>
+          <div class="live">${steps.length ? steps.map((e) => `<div><b>${WHO[e.from] || e.from}</b> ${SAY[e.type] || "sent an update"}<div class="t">${new Date(e.at).toLocaleTimeString()}</div></div>`).join("") : `<div class="muted">Waiting for the first update…</div>`}</div>
+        </div>`;
+    }
+    $("#app").innerHTML = html + `<div class="panel"><div class="row"><span>Items</span><span>${items}</span></div><div class="row"><span>Order</span><span>${o.order_id}</span></div></div>
+      <a class="btn ghost" href="#/">Continue shopping</a> <a class="btn ghost" href="#/orders">Your orders</a>`;
+    return o.status;
   }
-  window.scrollTo({ top: 0, behavior: "smooth" });
-  btn.disabled = false; btn.textContent = "Buy";
+  const status = await draw();
+  if (status !== "paid") timers.push(setInterval(draw, 2500));
 }
-load();
+
+async function ordersPage() {
+  async function draw() {
+    const list = await api(`/api/my-orders?shopper=${shopper}`);
+    $("#app").innerHTML = `<div class="panel"><h2 style="margin-top:0">Your orders</h2>${list.length ? list.map((o) => `
+      <a class="row" href="#/order/${o.order_id}"><div><div class="name">${o.order_id}</div><div class="muted">${(o.items || []).map((i) => i.name).join(", ")} · ${new Date(o.created_at).toLocaleTimeString()}</div></div>
+      <div style="text-align:right"><b>${money(o.amount)}</b><br>${o.recovered ? `<span class="pill rec">Recovered ✓</span>` : `<span class="pill ${o.status}">${o.status === "paid" ? "Paid" : o.status === "failed" ? "Declined" : o.status}</span>`}</div></a>`).join("") : `<p class="muted">No orders yet.</p>`}</div>`;
+  }
+  await draw();
+  timers.push(setInterval(draw, 3000));
+}
+
+function route() {
+  clearTimers();
+  const [, page, id] = (location.hash || "#/").split("/");
+  if (page === "p") return product(id);
+  if (page === "cart") return cartPage();
+  if (page === "checkout") return checkout();
+  if (page === "order") return orderPage(id);
+  if (page === "orders") return ordersPage();
+  renderCats();
+  home();
+}
+
+$("#q").oninput = () => { if (location.hash.startsWith("#/p") || location.hash === "" || location.hash === "#/") home(); else location.hash = "#/"; };
+window.onhashchange = route;
+api("/api/products").then((p) => { products = p; saveCart(); renderCats(); route(); });
 </script>
 </body>
 </html>

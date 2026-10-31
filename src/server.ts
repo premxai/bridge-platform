@@ -198,12 +198,30 @@ createServer(async (req, res) => {
     if (route === "GET /api/products") return json(res, 200, await (await fetch(`${SHOPCO}/products`)).json());
     if (route === "POST /api/checkout") {
       const b = await body(req);
+      const shopper = String(b.shopper || randomUUID().slice(0, 8)).replace(/[^a-z0-9-]/gi, "");
       const r = await fetch(`${SHOPCO}/checkout`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ product_id: b.product_id, customer_email: b.customer_email || `judge-${randomUUID().slice(0, 6)}@example.com` }),
+        body: JSON.stringify({ items: b.items, product_id: b.product_id, customer_email: `shopper-${shopper}@example.com` }),
       });
       return json(res, r.status, await r.json());
+    }
+    if (route === "GET /api/order") {
+      const r = await fetch(`${SHOPCO}/order?id=${encodeURIComponent(url.searchParams.get("id") ?? "")}`);
+      return json(res, r.status, await r.json());
+    }
+    if (route === "GET /api/my-orders") {
+      const shopper = String(url.searchParams.get("shopper") ?? "").replace(/[^a-z0-9-]/gi, "");
+      const r = await fetch(`${SHOPCO}/orders/by-customer?email=${encodeURIComponent(`shopper-${shopper}@example.com`)}`);
+      return json(res, r.status, await r.json());
+    }
+    // Customer-friendly view of what the companies' agents are doing right now.
+    if (route === "GET /api/incident-status") {
+      const steps = relayEvents
+        .filter((e) => e.type && e.from && e.type !== "POLICY_BLOCKED")
+        .slice(-8)
+        .map((e) => ({ at: e.at, from: e.from, to: e.to, type: e.type, text: e.text }));
+      return json(res, 200, { incident, banner, steps });
     }
     if (route === "GET /api/state") return json(res, 200, { ...snapshot(await orders().catch(() => [])), relay: relayEvents.slice(-30) });
     if (route === "GET /api/store-url") {
