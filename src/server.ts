@@ -181,6 +181,10 @@ function connectObserver(): void {
       event.type = "POLICY_BLOCKED";
     }
     if (event.type === "ROOT_CAUSE") banner = `Root cause: ${envelope?.text ?? event.text}`;
+    const who = ({ shopco: "ShopCo", payflow: "PayFlow", shieldco: "ShieldCo" } as Record<string, string>)[event.from] ?? event.from;
+    if (event.type === "FIX_PROPOSAL") banner = `${who} proposed a fix · waiting for human review`;
+    if (event.type === "FIX_DEPLOYED") banner = `${who} deployed the fix · retrying failed orders`;
+    if (event.type === "RESOLVED") banner = "Resolved: failed orders recovered";
     relayEvents.push(event);
     if (event.type && event.from && event.from !== "monitor") {
       roomRecord({ at: event.at, company: String(event.from), to: String(event.to ?? ""), type: String(event.type), text: String(envelope?.text ?? event.text) });

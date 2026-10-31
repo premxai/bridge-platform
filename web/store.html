@@ -470,12 +470,6 @@ async function pay() {
 }
 
 // ---------- order status ----------
-const WHO = { shopco: "ShopCo", payflow: "PayFlow (payments)", shieldco: "ShieldCo (fraud screening)", monitor: "ShopCo monitoring" };
-const SAY = {
-  INCIDENT_OPENED: "detected failed payments and opened an incident", STATUS: "is investigating", EVIDENCE_REQUEST: "asked a partner to check their systems",
-  EVIDENCE: "shared what its systems recorded", INNOCENT: "checked its systems: not the cause", SUSPECT: "found something suspicious", ROOT_CAUSE: "found the root cause",
-  FIX_PROPOSAL: "proposed a fix", FIX_AGREED: "agreed on the fix", FIX_DEPLOYED: "deployed the fix", RETRY_PLAN: "is completing affected orders", RESOLVED: "resolved the issue",
-};
 function orderShell(inner) {
   return shell(`<div class="op">${inner}</div>`);
 }
@@ -485,17 +479,10 @@ async function orderPage(id) {
     if (o.error) { $("main").innerHTML = `<div class="op"><div class="box">We couldn't find that order.</div></div>`; return "x"; }
     const name = o.ship_to?.first_name ? `, ${esc(o.ship_to.first_name)}` : "";
     let head;
-    if (o.status === "paid" && o.recovered) {
-      head = `<div class="ostat ok"><div class="ic">✓</div><div><h1>Good news${name}, your order went through</h1><p>Your payment was declined earlier because of a problem between our payment partners. It's fixed now, and order ${esc(o.order_id)} has been charged ${money(o.amount)}. You don't need to do anything.</p></div></div>`;
-    } else if (o.status === "paid") {
+    if (o.status === "paid") {
       head = `<div class="ostat ok"><div class="ic">✓</div><div><h1>Thank you${name}!</h1><p>Order ${esc(o.order_id)} is confirmed. We'll email you when it ships.</p></div></div>`;
     } else {
-      const s = await api("/api/incident-status");
-      const steps = s.steps || [];
-      head = `<div class="ostat bad"><div class="ic">!</div><div><h1>Payment declined</h1><p>We couldn't complete order ${esc(o.order_id)} (${money(o.amount)}). Your card was not charged.</p></div></div>
-        <div class="box"><h3><span class="pulse"></span>We're on it</h3>
-          <p class="small" style="margin:0 0 10px">ShopCo and its payment partners are investigating this right now. If the problem is on our side, we'll complete your order automatically. Keep this page open, or check <a href="#/account" style="text-decoration:underline">your orders</a> later.</p>
-          <div class="timeline">${steps.length ? steps.map((e) => `<div class="tl"><b>${WHO[e.from] || esc(e.from)}</b> ${SAY[e.type] || "sent an update"}<small>${new Date(e.at).toLocaleTimeString()}</small></div>`).join("") : `<div class="tl">Waiting for the first update…<small>Our team has been notified</small></div>`}</div></div>`;
+      head = `<div class="ostat bad"><div class="ic">!</div><div><h1>Payment declined</h1><p>We couldn't process your payment for order ${esc(o.order_id)}. Your card was not charged.</p></div></div>`;
     }
     const items = (o.items || []).map((i) => `<div class="sumline"><div class="thumb"><img src="/img/${i.image || "hero.jpg"}" alt=""><b>${i.qty}</b></div><div><div>${esc(i.name)}</div><div class="small">${esc(variant(i))}</div></div><div>${money(i.price * i.qty)}</div></div>`).join("");
     $("main").innerHTML = `<div class="op">${head}
@@ -516,7 +503,7 @@ async function accountPage() {
     const list = await api(`/api/my-orders?shopper=${shopper}`);
     $("main").innerHTML = `<div class="op"><h1 style="font-size:28px;margin:0 0 6px">Your orders</h1><p class="small" style="margin:0 0 20px">Orders placed from this device.</p>
       <div class="box olist" style="padding:4px 20px">${list.length ? list.map((o) => `<a href="#/order/${o.order_id}"><div><b>${esc(o.order_id)}</b><div class="small">${(o.items || []).map((i) => esc(i.name)).join(", ")} · ${new Date(o.created_at).toLocaleString()}</div></div>
-        <div style="text-align:right"><div>${money(o.amount)}</div>${o.recovered ? `<span class="pill rec">Completed after delay</span>` : `<span class="pill ${o.status}">${o.status === "paid" ? "Confirmed" : o.status === "failed" ? "Payment declined" : esc(o.status)}</span>`}</div></a>`).join("") : `<div class="empty">No orders yet.</div>`}</div></div>`;
+        <div style="text-align:right"><div>${money(o.amount)}</div><span class="pill ${o.status}">${o.status === "paid" ? "Confirmed" : o.status === "failed" ? "Payment declined" : esc(o.status)}</span></div></a>`).join("") : `<div class="empty">No orders yet.</div>`}</div></div>`;
   }
   await draw();
   timers.push(setInterval(draw, 3000));
